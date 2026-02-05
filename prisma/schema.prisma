@@ -14,20 +14,28 @@ datasource db {
 }
 
 model User {
-  id            String    @id
+  id            String     @id
   name          String
   email         String
-  emailVerified Boolean   @default(false)
+  emailVerified Boolean    @default(false)
   image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  role          Role
-  phone         String?
-  sessions      Session[]
-  accounts      Account[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  role          Role       @default(USER)
+  status        UserStatus @default(ACTIVE)
+
+  phone           String?
+  sessions        Session[]
+  accounts        Account[]
+  providerProfile ProviderProfile?
 
   @@unique([email])
   @@map("User")
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
 }
 
 enum Role {
@@ -84,5 +92,34 @@ model Verification {
   @@map("Verification")
 }
 
+model ProviderProfile {
+  id          String  @id @default(uuid())
+  name        String
+  location    String
+  description String?
+  userId      String  @unique
+  user        User    @relation(fields: [userId], references: [id])
+  meals       Meal[]
 
+  @@map("ProviderProfile")
+}
+
+model Category {
+  id   String @id @default(uuid())
+  name String @unique
+
+  @@map("Category")
+}
+
+model Meal {
+  id          String          @id @default(uuid())
+  name        String
+  description String?
+  price       Float
+  image       String?
+  providerId  String
+  provider    ProviderProfile @relation(fields: [providerId], references: [id])
+
+  @@map("Meal")
+}
 
