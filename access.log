@@ -10,3 +10,5 @@
 ::1 - - [05/Feb/2026:08:32:41 +0000] "POST /api/auth/sign-up/email HTTP/1.1" 404 162 "-" "PostmanRuntime/7.51.1"
 ::1 - - [05/Feb/2026:08:33:50 +0000] "POST /api/auth/sign-up/email HTTP/1.1" 422 - "-" "PostmanRuntime/7.51.1"
 ::1 - - [05/Feb/2026:08:40:55 +0000] "POST /api/auth/sign-up/email HTTP/1.1" 200 - "-" "PostmanRuntime/7.51.1"
+::1 - - [05/Feb/2026:14:03:25 +0000] "POST /api/auth/sign-in/email HTTP/1.1" 200 - "-" "PostmanRuntime/7.51.1"
+::1 - - [05/Feb/2026:14:04:13 +0000] "POST /api/v1/provider HTTP/1.1" 201 349 "-" "PostmanRuntime/7.51.1"
