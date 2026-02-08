@@ -31,6 +31,7 @@ export const sendEmail = async (name: string, email: string, token: string) => {
           Thanks for joining <strong>Food Express</strong> — Fast, Reliable, and Delicious Food Delivered to Your Doorstep.
         </p>
 
+
         <p>Please verify your email address by clicking the button below:</p>
 
         <a

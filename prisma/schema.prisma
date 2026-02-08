@@ -109,8 +109,9 @@ model ProviderProfile {
 }
 
 model Category {
-  id   String @id @default(uuid())
-  name String @unique
+  id    String @id @default(uuid())
+  name  String @unique
+  meals Meal[]
 
   @@map("Category")
 }
@@ -123,6 +124,8 @@ model Meal {
   image       String?
   providerId  String
   provider    ProviderProfile @relation(fields: [providerId], references: [id])
+  catagoryId  String?
+  category    Category?       @relation(fields: [catagoryId], references: [id])
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
   orderItems  OrderItem[]
