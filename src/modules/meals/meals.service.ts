@@ -1,6 +1,16 @@
 import { Meal } from "../../../generated/prisma/client";
 import { prisma } from "../../lib/prisma";
 
+const getProviderIdWithMealId = async (id: string) => {
+  return await prisma.meal.findUniqueOrThrow({
+    where: {
+      id,
+    },
+    select: {
+      providerId: true,
+    },
+  });
+};
 const getMeals = async () => {
   return await prisma.meal.findMany({
     include: {
@@ -44,9 +54,29 @@ const createMeal = async (
     },
   });
 };
+const editMeal = async (data: Partial<Meal>, id: string) => {
+  return await prisma.meal.update({
+    where: {
+      id,
+    },
+    data: {
+      ...data,
+    },
+  });
+};
+const deleteMeal = async (id: string) => {
+  return await prisma.meal.delete({
+    where: {
+      id,
+    },
+  });
+};
 
 export const MealsService = {
   getMeals,
   createMeal,
-  getMealsById
+  getMealsById,
+  getProviderIdWithMealId,
+  editMeal,
+  deleteMeal,
 };

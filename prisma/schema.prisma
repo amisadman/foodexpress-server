@@ -102,7 +102,7 @@ model ProviderProfile {
   latitude    Float?
   description String?
   userId      String   @unique
-  user        User     @relation(fields: [userId], references: [id])
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   meals       Meal[]
@@ -125,7 +125,7 @@ model Meal {
   price       Float
   image       String?
   providerId  String
-  provider    ProviderProfile @relation(fields: [providerId], references: [id])
+  provider    ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
   catagoryId  String?
   category    Category?       @relation(fields: [catagoryId], references: [id])
   createdAt   DateTime        @default(now())
@@ -140,13 +140,13 @@ model Order {
   id              String      @id @default(uuid())
   status          OrderStatus @default(PLACED)
   delivaryAddress String
-  longitude   Float?
-  latitude    Float?
+  longitude       Float?
+  latitude        Float?
   totalPrice      Float
 
   customerId String
 
-  customer   User        @relation(fields: [customerId], references: [id])
+  customer   User        @relation(fields: [customerId], references: [id], onDelete: Cascade)
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
   orderItems OrderItem[]
@@ -179,9 +179,9 @@ model Review {
   rating    Float
   comment   String?
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   mealId    String
-  meal      Meal     @relation(fields: [mealId], references: [id])
+  meal      Meal     @relation(fields: [mealId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
