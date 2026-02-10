@@ -9,6 +9,12 @@
 FoodExpress is a premium food ordering platform that connects hungry customers with their favorite local providers. Built with a focus on speed, reliability, and a seamless user experience, FoodExpress is your go-to solution for satisfying every craving.
 
 ---
+## Client Repository
+
+The frontend client for this project is available at:
+[https://github.com/amisadman/papertrail-client](https://github.com/amisadman/foodexpress-client)
+
+---
 
 ## Key Features
 
@@ -48,40 +54,93 @@ Our database is designed for high performance and data integrity:
 
 ```mermaid
 erDiagram
-    USER ||--o| PROVIDER_PROFILE : "has"
-    USER ||--o{ ORDER : "places"
-    USER ||--o{ REVIEW : "writes"
-    PROVIDER_PROFILE ||--o{ MEAL : "offers"
-    CATEGORY ||--o{ MEAL : "categorizes"
-    MEAL ||--o{ ORDER_ITEM : "included in"
-    ORDER ||--o{ ORDER_ITEM : "contains"
-    MEAL ||--o{ REVIEW : "receives"
-
-    USER {
+    User ||--o| ProviderProfile : "may have"
+    User ||--o{ Order : places
+    User ||--o{ Review : writes
+    
+    ProviderProfile ||--o{ Meal : offers
+    ProviderProfile ||--o{ Review : receives
+    ProviderProfile ||--o{ Order : receives
+    
+    Category ||--o{ Meal : contains
+    
+    Meal ||--o{ OrderItem : "included in"
+    Meal ||--o{ Review : "reviewed in"
+    
+    Order ||--o{ OrderItem : contains
+    
+    User {
         string id PK
-        string email
-        string role "CUSTOMER | PROVIDER | ADMIN"
-        string status "ACTIVE | SUSPENDED"
+        string name
+        string email UK
+        boolean emailVerified
+        string image
+        datetime createdAt
+        datetime updatedAt
+        Role role
+        UserStatus status
+        string phone
     }
-    PROVIDER_PROFILE {
+    
+    ProviderProfile {
         string id PK
         string name
         string location
+        float longitude
+        float latitude
+        string description
+        string userId FK
+        datetime createdAt
+        datetime updatedAt
     }
-    MEAL {
+    
+    Category {
+        string id PK
+        string name UK
+    }
+    
+    Meal {
         string id PK
         string name
+        string description
         float price
+        string image
+        string providerId FK
+        string catagoryId FK
+        datetime createdAt
+        datetime updatedAt
     }
-    ORDER {
+    
+    Order {
         string id PK
-        string status "PLACED | PREPARING | READY | DELIVERED"
+        OrderStatus status
+        string delivaryAddress
+        float longitude
+        float latitude
         float totalPrice
+        string providerId FK
+        string customerId FK
+        datetime createdAt
+        datetime updatedAt
     }
-    ORDER_ITEM {
+    
+    OrderItem {
         string id PK
         int quantity
-        float price "Snapshot"
+        float price
+        string orderId FK
+        string mealId FK
+    }
+    
+    Review {
+        string id PK
+        float rating
+        string comment
+        string userId FK
+        string mealId FK
+        string providerId FK
+        datetime createdAt
+        datetime updatedAt
     }
 ```
 
@@ -98,7 +157,7 @@ erDiagram
 
 ```bash
 # Clone the repository
-git clone https://github.com/amisadman/food-express.git
+git clone https://github.com/amisadman/foodexpress-server.git
 
 # Install dependencies
 pnpm install
