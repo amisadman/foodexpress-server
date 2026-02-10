@@ -8,6 +8,25 @@ const getMeals = async () => {
         select: {
           name: true,
           location: true,
+          longitude: true,
+          latitude: true,
+        },
+      },
+    },
+  });
+};
+const getMealsById = async (id: string) => {
+  return await prisma.meal.findFirstOrThrow({
+    where: {
+      id,
+    },
+    include: {
+      provider: {
+        select: {
+          name: true,
+          location: true,
+          longitude: true,
+          latitude: true,
         },
       },
     },
@@ -29,4 +48,5 @@ const createMeal = async (
 export const MealsService = {
   getMeals,
   createMeal,
+  getMealsById
 };
