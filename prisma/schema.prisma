@@ -98,6 +98,8 @@ model ProviderProfile {
   id          String   @id @default(uuid())
   name        String
   location    String
+  longitude   Float?
+  latitude    Float?
   description String?
   userId      String   @unique
   user        User     @relation(fields: [userId], references: [id])
@@ -138,6 +140,8 @@ model Order {
   id              String      @id @default(uuid())
   status          OrderStatus @default(PLACED)
   delivaryAddress String
+  longitude   Float?
+  latitude    Float?
   totalPrice      Float
 
   customerId String
