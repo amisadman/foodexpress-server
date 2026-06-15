@@ -1,4 +1,4 @@
-import { OrderStatus } from "../../../generated/prisma/enums";
+import { OrderStatus } from "@prisma/client";
 import { prisma } from "../../lib/prisma";
 
 const hasOrdered = async (userId: string, mealId: string) => {

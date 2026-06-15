@@ -45,7 +45,6 @@ export class QueryBuilder<
   search(): this {
     const { searchTerm } = this.queryParams;
     const { searchableFields } = this.config;
-    // doctorSearchableFields = ['user.name', 'user.email', 'specialties.specialty.title' , 'specialties.specialty.description']
     if (searchTerm && searchableFields && searchableFields.length > 0) {
       const searchConditions: Record<string, unknown>[] = searchableFields.map(
         (field) => {
@@ -53,7 +52,7 @@ export class QueryBuilder<
             const parts = field.split(".");
 
             if (parts.length === 2) {
-              const [relation, nestedField] = parts;
+              const [relation, nestedField] = parts as [string, string];
 
               const stringFilter: PrismaStringFilter = {
                 contains: searchTerm,
@@ -66,7 +65,7 @@ export class QueryBuilder<
                 },
               };
             } else if (parts.length === 3) {
-              const [relation, nestedRelation, nestedField] = parts;
+              const [relation, nestedRelation, nestedField] = parts as [string, string, string];
 
               const stringFilter: PrismaStringFilter = {
                 contains: searchTerm,
@@ -107,8 +106,6 @@ export class QueryBuilder<
 
     return this;
   }
-  // /doctors?searchTerm=john&page=1&sortBy=name&specialty=cardiology&appointmentFee[lt]=100 => {}
-  // { specialty: 'cardiology', appointmentFee: { lt: '100' } }
   filter(): this {
     const { filterableFields } = this.config;
     const excludedField = [
@@ -144,10 +141,7 @@ export class QueryBuilder<
         filterableFields.length === 0 ||
         filterableFields.includes(key);
 
-      // doctorFilterableFields = ['specialties.specialty.title', 'appointmentFee']
-      // /doctors?appointmentFee[lt]=100&appointmentFee[gt]=50 => { appointmentFee: { lt: '100', gt: '50' } }
 
-      // /doctors?user.name=John => { user: { name: 'John' } }
       if (key.includes(".")) {
         const parts = key.split(".");
 
@@ -156,7 +150,7 @@ export class QueryBuilder<
         }
 
         if (parts.length === 2) {
-          const [relation, nestedField] = parts;
+          const [relation, nestedField] = parts as [string, string];
 
           if (!queryWhere[relation]) {
             queryWhere[relation] = {};
@@ -173,7 +167,7 @@ export class QueryBuilder<
           countRelation[nestedField] = this.parseFilterValue(value);
           return;
         } else if (parts.length === 3) {
-          const [relation, nestedRelation, nestedField] = parts;
+          const [relation, nestedRelation, nestedField] = parts as [string, string, string];
 
           if (!queryWhere[relation]) {
             queryWhere[relation] = {
@@ -270,13 +264,11 @@ export class QueryBuilder<
     this.sortBy = sortBy;
     this.sortOrder = sortOrder;
 
-    // /doctors?sortBy=user.name&sortOrder=asc => orderBy: { user: { name: 'asc' } }
-
     if (sortBy.includes(".")) {
       const parts = sortBy.split(".");
 
       if (parts.length === 2) {
-        const [relation, nestedField] = parts;
+        const [relation, nestedField] = parts as [string, string];
 
         this.query.orderBy = {
           [relation]: {
@@ -284,7 +276,7 @@ export class QueryBuilder<
           },
         };
       } else if (parts.length === 3) {
-        const [relation, nestedRelation, nestedField] = parts;
+        const [relation, nestedRelation, nestedField] = parts as [string, string, string];
 
         this.query.orderBy = {
           [relation]: {
@@ -308,7 +300,6 @@ export class QueryBuilder<
 
   fields(): this {
     const fieldsParam = this.queryParams.fields;
-    // /doctors?fields=id,name,user => select: { id: true, name: true, user: { select: { name: true } } }
 
     //no nested field selection for now, only direct fields
     if (fieldsParam && typeof fieldsParam === "string") {
@@ -488,6 +479,8 @@ export class QueryBuilder<
 
     Object.keys(value).forEach((operator) => {
       const operatorValue = value[operator];
+      
+      if (operatorValue === undefined) return;
 
       const parsedValue: string | number =
         typeof operatorValue === "string" && !isNaN(Number(operatorValue))

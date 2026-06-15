@@ -4,7 +4,7 @@ import authorization, { UserRole } from "../../middleware/authorization";
 
 const router: Router = Router();
 
-router.get("/",authorization(UserRole.ADMIN), MealsController.getMeals);
+router.get("/", MealsController.getMeals);
 router.post("/", authorization(UserRole.PROVIDER), MealsController.createMeal);
 
 router.get("/:id", MealsController.getMealsById);

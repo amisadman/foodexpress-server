@@ -1,4 +1,4 @@
-import { Meal, Review } from "../../../generated/prisma/client";
+import { Meal, Review } from "@prisma/client";
 import { prisma } from "../../lib/prisma";
 
 const getProviderIdWithMealId = async (id: string) => {

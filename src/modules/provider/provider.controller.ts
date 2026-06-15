@@ -1,16 +1,31 @@
 import { NextFunction, Request, Response } from "express";
 import { ProviderService } from "./provider.service";
 import { sendResponse } from "../../utils/response";
-import { ProviderProfile } from "../../../generated/prisma/client";
+import { ProviderProfile } from "@prisma/client";
 import { UserRole } from "../../middleware/authorization";
-
+import { QueryBuilder } from "../../utils/QueryBuilder";
+import { IQueryParams } from "../../interface/querybuilder.interface";
+import { prisma } from "../../lib/prisma";
 const getProviders = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const data = await ProviderService.getProviders();
+    const queryBuilder = new QueryBuilder<ProviderProfile>(
+      prisma.providerProfile,
+      req.query as IQueryParams,
+      {
+        searchableFields: ["name", "location", "description"],
+        filterableFields: ["location"],
+      }
+    )
+      .search()
+      .filter()
+      .sort()
+      .paginate();
+
+    const data = await queryBuilder.execute();
 
     return sendResponse(res, 200, true, "Provider Fetched Successfully", data);
   } catch (error) {

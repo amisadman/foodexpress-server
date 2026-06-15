@@ -1,9 +1,3 @@
-var __defProp = Object.defineProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-
 // src/app.ts
 import express from "express";
 import os from "os";
@@ -17,247 +11,7 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 // src/lib/prisma.ts
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
-
-// generated/prisma/client.ts
-import * as path from "path";
-import { fileURLToPath } from "url";
-
-// generated/prisma/internal/class.ts
-import * as runtime from "@prisma/client/runtime/client";
-var config = {
-  "previewFeatures": [],
-  "clientVersion": "7.3.0",
-  "engineVersion": "9d6ad21cbbceab97458517b147a6a09ff43aa735",
-  "activeProvider": "postgresql",
-  "inlineSchema": '// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n\ngenerator client {\n  provider = "prisma-client"\n  output   = "../generated/prisma"\n}\n\ndatasource db {\n  provider = "postgresql"\n}\n\nmodel User {\n  id            String     @id\n  name          String\n  email         String\n  emailVerified Boolean    @default(false)\n  image         String?\n  createdAt     DateTime   @default(now())\n  updatedAt     DateTime   @updatedAt\n  role          Role       @default(USER)\n  status        UserStatus @default(ACTIVE)\n\n  phone           String?\n  sessions        Session[]\n  accounts        Account[]\n  providerProfile ProviderProfile?\n  orders          Order[]\n  reviews         Review[]\n\n  @@unique([email])\n  @@map("User")\n}\n\nenum UserStatus {\n  ACTIVE\n  INACTIVE\n}\n\nenum Role {\n  ADMIN\n  USER\n  PROVIDER\n}\n\nmodel Session {\n  id        String   @id\n  expiresAt DateTime\n  token     String\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n  ipAddress String?\n  userAgent String?\n  userId    String\n  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)\n\n  @@unique([token])\n  @@index([userId])\n  @@map("Session")\n}\n\nmodel Account {\n  id                    String    @id\n  accountId             String\n  providerId            String\n  userId                String\n  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)\n  accessToken           String?\n  refreshToken          String?\n  idToken               String?\n  accessTokenExpiresAt  DateTime?\n  refreshTokenExpiresAt DateTime?\n  scope                 String?\n  password              String?\n  createdAt             DateTime  @default(now())\n  updatedAt             DateTime  @updatedAt\n\n  @@index([userId])\n  @@map("Account")\n}\n\nmodel Verification {\n  id         String   @id\n  identifier String\n  value      String\n  expiresAt  DateTime\n  createdAt  DateTime @default(now())\n  updatedAt  DateTime @updatedAt\n\n  @@index([identifier])\n  @@map("Verification")\n}\n\nmodel ProviderProfile {\n  id          String   @id @default(uuid())\n  name        String\n  location    String\n  longitude   Float?\n  latitude    Float?\n  description String?\n  userId      String   @unique\n  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)\n  createdAt   DateTime @default(now())\n  updatedAt   DateTime @updatedAt\n  meals       Meal[]\n  reviews     Review[]\n  orders      Order[]\n\n  @@map("ProviderProfile")\n}\n\nmodel Category {\n  id    String @id @default(uuid())\n  name  String @unique\n  meals Meal[]\n\n  @@map("Category")\n}\n\nmodel Meal {\n  id          String          @id @default(uuid())\n  name        String\n  description String?\n  price       Float\n  image       String?\n  providerId  String\n  provider    ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)\n  catagoryId  String?\n  category    Category?       @relation(fields: [catagoryId], references: [id])\n  createdAt   DateTime        @default(now())\n  updatedAt   DateTime        @updatedAt\n  orderItems  OrderItem[]\n  reviews     Review[]\n\n  @@map("Meal")\n}\n\nmodel Order {\n  id              String          @id @default(uuid())\n  status          OrderStatus     @default(PLACED)\n  delivaryAddress String\n  longitude       Float?\n  latitude        Float?\n  totalPrice      Float\n  providerId      String\n  provider        ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)\n\n  customerId String\n\n  customer   User        @relation(fields: [customerId], references: [id], onDelete: Cascade)\n  createdAt  DateTime    @default(now())\n  updatedAt  DateTime    @updatedAt\n  orderItems OrderItem[]\n\n  @@map("Order")\n}\n\nenum OrderStatus {\n  PLACED\n  PREPARING\n  READY\n  DELIVERED\n  CANCELLED\n}\n\nmodel OrderItem {\n  id       String @id @default(uuid())\n  quantity Int\n  price    Float\n  orderId  String\n  order    Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)\n  mealId   String\n  meal     Meal   @relation(fields: [mealId], references: [id], onDelete: Cascade)\n\n  @@map("OrderItem")\n}\n\nmodel Review {\n  id         String          @id @default(uuid())\n  rating     Float\n  comment    String?\n  userId     String\n  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)\n  mealId     String\n  meal       Meal            @relation(fields: [mealId], references: [id], onDelete: Cascade)\n  providerId String\n  provider   ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)\n  createdAt  DateTime        @default(now())\n  updatedAt  DateTime        @updatedAt\n\n  @@map("Review")\n}\n',
-  "runtimeDataModel": {
-    "models": {},
-    "enums": {},
-    "types": {}
-  }
-};
-config.runtimeDataModel = JSON.parse('{"models":{"User":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"name","kind":"scalar","type":"String"},{"name":"email","kind":"scalar","type":"String"},{"name":"emailVerified","kind":"scalar","type":"Boolean"},{"name":"image","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"},{"name":"role","kind":"enum","type":"Role"},{"name":"status","kind":"enum","type":"UserStatus"},{"name":"phone","kind":"scalar","type":"String"},{"name":"sessions","kind":"object","type":"Session","relationName":"SessionToUser"},{"name":"accounts","kind":"object","type":"Account","relationName":"AccountToUser"},{"name":"providerProfile","kind":"object","type":"ProviderProfile","relationName":"ProviderProfileToUser"},{"name":"orders","kind":"object","type":"Order","relationName":"OrderToUser"},{"name":"reviews","kind":"object","type":"Review","relationName":"ReviewToUser"}],"dbName":"User"},"Session":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"expiresAt","kind":"scalar","type":"DateTime"},{"name":"token","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"},{"name":"ipAddress","kind":"scalar","type":"String"},{"name":"userAgent","kind":"scalar","type":"String"},{"name":"userId","kind":"scalar","type":"String"},{"name":"user","kind":"object","type":"User","relationName":"SessionToUser"}],"dbName":"Session"},"Account":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"accountId","kind":"scalar","type":"String"},{"name":"providerId","kind":"scalar","type":"String"},{"name":"userId","kind":"scalar","type":"String"},{"name":"user","kind":"object","type":"User","relationName":"AccountToUser"},{"name":"accessToken","kind":"scalar","type":"String"},{"name":"refreshToken","kind":"scalar","type":"String"},{"name":"idToken","kind":"scalar","type":"String"},{"name":"accessTokenExpiresAt","kind":"scalar","type":"DateTime"},{"name":"refreshTokenExpiresAt","kind":"scalar","type":"DateTime"},{"name":"scope","kind":"scalar","type":"String"},{"name":"password","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":"Account"},"Verification":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"identifier","kind":"scalar","type":"String"},{"name":"value","kind":"scalar","type":"String"},{"name":"expiresAt","kind":"scalar","type":"DateTime"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":"Verification"},"ProviderProfile":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"name","kind":"scalar","type":"String"},{"name":"location","kind":"scalar","type":"String"},{"name":"longitude","kind":"scalar","type":"Float"},{"name":"latitude","kind":"scalar","type":"Float"},{"name":"description","kind":"scalar","type":"String"},{"name":"userId","kind":"scalar","type":"String"},{"name":"user","kind":"object","type":"User","relationName":"ProviderProfileToUser"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"},{"name":"meals","kind":"object","type":"Meal","relationName":"MealToProviderProfile"},{"name":"reviews","kind":"object","type":"Review","relationName":"ProviderProfileToReview"},{"name":"orders","kind":"object","type":"Order","relationName":"OrderToProviderProfile"}],"dbName":"ProviderProfile"},"Category":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"name","kind":"scalar","type":"String"},{"name":"meals","kind":"object","type":"Meal","relationName":"CategoryToMeal"}],"dbName":"Category"},"Meal":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"name","kind":"scalar","type":"String"},{"name":"description","kind":"scalar","type":"String"},{"name":"price","kind":"scalar","type":"Float"},{"name":"image","kind":"scalar","type":"String"},{"name":"providerId","kind":"scalar","type":"String"},{"name":"provider","kind":"object","type":"ProviderProfile","relationName":"MealToProviderProfile"},{"name":"catagoryId","kind":"scalar","type":"String"},{"name":"category","kind":"object","type":"Category","relationName":"CategoryToMeal"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"},{"name":"orderItems","kind":"object","type":"OrderItem","relationName":"MealToOrderItem"},{"name":"reviews","kind":"object","type":"Review","relationName":"MealToReview"}],"dbName":"Meal"},"Order":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"status","kind":"enum","type":"OrderStatus"},{"name":"delivaryAddress","kind":"scalar","type":"String"},{"name":"longitude","kind":"scalar","type":"Float"},{"name":"latitude","kind":"scalar","type":"Float"},{"name":"totalPrice","kind":"scalar","type":"Float"},{"name":"providerId","kind":"scalar","type":"String"},{"name":"provider","kind":"object","type":"ProviderProfile","relationName":"OrderToProviderProfile"},{"name":"customerId","kind":"scalar","type":"String"},{"name":"customer","kind":"object","type":"User","relationName":"OrderToUser"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"},{"name":"orderItems","kind":"object","type":"OrderItem","relationName":"OrderToOrderItem"}],"dbName":"Order"},"OrderItem":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"quantity","kind":"scalar","type":"Int"},{"name":"price","kind":"scalar","type":"Float"},{"name":"orderId","kind":"scalar","type":"String"},{"name":"order","kind":"object","type":"Order","relationName":"OrderToOrderItem"},{"name":"mealId","kind":"scalar","type":"String"},{"name":"meal","kind":"object","type":"Meal","relationName":"MealToOrderItem"}],"dbName":"OrderItem"},"Review":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"rating","kind":"scalar","type":"Float"},{"name":"comment","kind":"scalar","type":"String"},{"name":"userId","kind":"scalar","type":"String"},{"name":"user","kind":"object","type":"User","relationName":"ReviewToUser"},{"name":"mealId","kind":"scalar","type":"String"},{"name":"meal","kind":"object","type":"Meal","relationName":"MealToReview"},{"name":"providerId","kind":"scalar","type":"String"},{"name":"provider","kind":"object","type":"ProviderProfile","relationName":"ProviderProfileToReview"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":"Review"}},"enums":{},"types":{}}');
-async function decodeBase64AsWasm(wasmBase64) {
-  const { Buffer: Buffer2 } = await import("buffer");
-  const wasmArray = Buffer2.from(wasmBase64, "base64");
-  return new WebAssembly.Module(wasmArray);
-}
-config.compilerWasm = {
-  getRuntime: async () => await import("@prisma/client/runtime/query_compiler_fast_bg.postgresql.mjs"),
-  getQueryCompilerWasmModule: async () => {
-    const { wasm } = await import("@prisma/client/runtime/query_compiler_fast_bg.postgresql.wasm-base64.mjs");
-    return await decodeBase64AsWasm(wasm);
-  },
-  importName: "./query_compiler_fast_bg.js"
-};
-function getPrismaClientClass() {
-  return runtime.getPrismaClient(config);
-}
-
-// generated/prisma/internal/prismaNamespace.ts
-var prismaNamespace_exports = {};
-__export(prismaNamespace_exports, {
-  AccountScalarFieldEnum: () => AccountScalarFieldEnum,
-  AnyNull: () => AnyNull2,
-  CategoryScalarFieldEnum: () => CategoryScalarFieldEnum,
-  DbNull: () => DbNull2,
-  Decimal: () => Decimal2,
-  JsonNull: () => JsonNull2,
-  MealScalarFieldEnum: () => MealScalarFieldEnum,
-  ModelName: () => ModelName,
-  NullTypes: () => NullTypes2,
-  NullsOrder: () => NullsOrder,
-  OrderItemScalarFieldEnum: () => OrderItemScalarFieldEnum,
-  OrderScalarFieldEnum: () => OrderScalarFieldEnum,
-  PrismaClientInitializationError: () => PrismaClientInitializationError2,
-  PrismaClientKnownRequestError: () => PrismaClientKnownRequestError2,
-  PrismaClientRustPanicError: () => PrismaClientRustPanicError2,
-  PrismaClientUnknownRequestError: () => PrismaClientUnknownRequestError2,
-  PrismaClientValidationError: () => PrismaClientValidationError2,
-  ProviderProfileScalarFieldEnum: () => ProviderProfileScalarFieldEnum,
-  QueryMode: () => QueryMode,
-  ReviewScalarFieldEnum: () => ReviewScalarFieldEnum,
-  SessionScalarFieldEnum: () => SessionScalarFieldEnum,
-  SortOrder: () => SortOrder,
-  Sql: () => Sql2,
-  TransactionIsolationLevel: () => TransactionIsolationLevel,
-  UserScalarFieldEnum: () => UserScalarFieldEnum,
-  VerificationScalarFieldEnum: () => VerificationScalarFieldEnum,
-  defineExtension: () => defineExtension,
-  empty: () => empty2,
-  getExtensionContext: () => getExtensionContext,
-  join: () => join2,
-  prismaVersion: () => prismaVersion,
-  raw: () => raw2,
-  sql: () => sql
-});
-import * as runtime2 from "@prisma/client/runtime/client";
-var PrismaClientKnownRequestError2 = runtime2.PrismaClientKnownRequestError;
-var PrismaClientUnknownRequestError2 = runtime2.PrismaClientUnknownRequestError;
-var PrismaClientRustPanicError2 = runtime2.PrismaClientRustPanicError;
-var PrismaClientInitializationError2 = runtime2.PrismaClientInitializationError;
-var PrismaClientValidationError2 = runtime2.PrismaClientValidationError;
-var sql = runtime2.sqltag;
-var empty2 = runtime2.empty;
-var join2 = runtime2.join;
-var raw2 = runtime2.raw;
-var Sql2 = runtime2.Sql;
-var Decimal2 = runtime2.Decimal;
-var getExtensionContext = runtime2.Extensions.getExtensionContext;
-var prismaVersion = {
-  client: "7.3.0",
-  engine: "9d6ad21cbbceab97458517b147a6a09ff43aa735"
-};
-var NullTypes2 = {
-  DbNull: runtime2.NullTypes.DbNull,
-  JsonNull: runtime2.NullTypes.JsonNull,
-  AnyNull: runtime2.NullTypes.AnyNull
-};
-var DbNull2 = runtime2.DbNull;
-var JsonNull2 = runtime2.JsonNull;
-var AnyNull2 = runtime2.AnyNull;
-var ModelName = {
-  User: "User",
-  Session: "Session",
-  Account: "Account",
-  Verification: "Verification",
-  ProviderProfile: "ProviderProfile",
-  Category: "Category",
-  Meal: "Meal",
-  Order: "Order",
-  OrderItem: "OrderItem",
-  Review: "Review"
-};
-var TransactionIsolationLevel = runtime2.makeStrictEnum({
-  ReadUncommitted: "ReadUncommitted",
-  ReadCommitted: "ReadCommitted",
-  RepeatableRead: "RepeatableRead",
-  Serializable: "Serializable"
-});
-var UserScalarFieldEnum = {
-  id: "id",
-  name: "name",
-  email: "email",
-  emailVerified: "emailVerified",
-  image: "image",
-  createdAt: "createdAt",
-  updatedAt: "updatedAt",
-  role: "role",
-  status: "status",
-  phone: "phone"
-};
-var SessionScalarFieldEnum = {
-  id: "id",
-  expiresAt: "expiresAt",
-  token: "token",
-  createdAt: "createdAt",
-  updatedAt: "updatedAt",
-  ipAddress: "ipAddress",
-  userAgent: "userAgent",
-  userId: "userId"
-};
-var AccountScalarFieldEnum = {
-  id: "id",
-  accountId: "accountId",
-  providerId: "providerId",
-  userId: "userId",
-  accessToken: "accessToken",
-  refreshToken: "refreshToken",
-  idToken: "idToken",
-  accessTokenExpiresAt: "accessTokenExpiresAt",
-  refreshTokenExpiresAt: "refreshTokenExpiresAt",
-  scope: "scope",
-  password: "password",
-  createdAt: "createdAt",
-  updatedAt: "updatedAt"
-};
-var VerificationScalarFieldEnum = {
-  id: "id",
-  identifier: "identifier",
-  value: "value",
-  expiresAt: "expiresAt",
-  createdAt: "createdAt",
-  updatedAt: "updatedAt"
-};
-var ProviderProfileScalarFieldEnum = {
-  id: "id",
-  name: "name",
-  location: "location",
-  longitude: "longitude",
-  latitude: "latitude",
-  description: "description",
-  userId: "userId",
-  createdAt: "createdAt",
-  updatedAt: "updatedAt"
-};
-var CategoryScalarFieldEnum = {
-  id: "id",
-  name: "name"
-};
-var MealScalarFieldEnum = {
-  id: "id",
-  name: "name",
-  description: "description",
-  price: "price",
-  image: "image",
-  providerId: "providerId",
-  catagoryId: "catagoryId",
-  createdAt: "createdAt",
-  updatedAt: "updatedAt"
-};
-var OrderScalarFieldEnum = {
-  id: "id",
-  status: "status",
-  delivaryAddress: "delivaryAddress",
-  longitude: "longitude",
-  latitude: "latitude",
-  totalPrice: "totalPrice",
-  providerId: "providerId",
-  customerId: "customerId",
-  createdAt: "createdAt",
-  updatedAt: "updatedAt"
-};
-var OrderItemScalarFieldEnum = {
-  id: "id",
-  quantity: "quantity",
-  price: "price",
-  orderId: "orderId",
-  mealId: "mealId"
-};
-var ReviewScalarFieldEnum = {
-  id: "id",
-  rating: "rating",
-  comment: "comment",
-  userId: "userId",
-  mealId: "mealId",
-  providerId: "providerId",
-  createdAt: "createdAt",
-  updatedAt: "updatedAt"
-};
-var SortOrder = {
-  asc: "asc",
-  desc: "desc"
-};
-var QueryMode = {
-  default: "default",
-  insensitive: "insensitive"
-};
-var NullsOrder = {
-  first: "first",
-  last: "last"
-};
-var defineExtension = runtime2.Extensions.defineExtension;
-
-// generated/prisma/enums.ts
-var Role = {
-  ADMIN: "ADMIN",
-  USER: "USER",
-  PROVIDER: "PROVIDER"
-};
-
-// generated/prisma/client.ts
-globalThis["__dirname"] = path.dirname(fileURLToPath(import.meta.url));
-var PrismaClient = getPrismaClientClass();
+import { PrismaClient } from "@prisma/client";
 
 // src/config/env.ts
 import dotenv from "dotenv";
@@ -282,7 +36,7 @@ var adapter = new PrismaPg({ connectionString });
 var prisma = new PrismaClient({ adapter });
 
 // src/services/mail/mail.service.ts
-import path2 from "path";
+import path from "path";
 
 // src/services/mail/transporter.ts
 import nodemailer from "nodemailer";
@@ -359,7 +113,7 @@ var sendEmail = async (name, email, token) => {
     attachments: [
       {
         filename: "foodExpress.png",
-        path: path2.join(process.cwd(), "/resources/foodExpress.png"),
+        path: path.join(process.cwd(), "/resources/foodExpress.png"),
         cid: "foodexpress-logo"
       }
     ]
@@ -447,14 +201,15 @@ function notFound(req, res) {
 }
 
 // src/middleware/globalErrorHandler.ts
+import { Prisma } from "@prisma/client";
 function errorHandler(err, req, res, next) {
   let statusCode = 500;
   let errorMessage = "Internal Server Error";
   let errorDetails = err;
-  if (err instanceof prismaNamespace_exports.PrismaClientValidationError) {
+  if (err instanceof Prisma.PrismaClientValidationError) {
     statusCode = 400;
     errorMessage = "You provide incorrect field type or missing fields!";
-  } else if (err instanceof prismaNamespace_exports.PrismaClientKnownRequestError) {
+  } else if (err instanceof Prisma.PrismaClientKnownRequestError) {
     if (err.code === "P2025") {
       statusCode = 400;
       errorMessage = "An operation failed because it depends on one or more records that were required but not found.";
@@ -465,10 +220,10 @@ function errorHandler(err, req, res, next) {
       statusCode = 400;
       errorMessage = "Foreign key constraint failed";
     }
-  } else if (err instanceof prismaNamespace_exports.PrismaClientUnknownRequestError) {
+  } else if (err instanceof Prisma.PrismaClientUnknownRequestError) {
     statusCode = 500;
     errorMessage = "Error occurred during query execution";
-  } else if (err instanceof prismaNamespace_exports.PrismaClientInitializationError) {
+  } else if (err instanceof Prisma.PrismaClientInitializationError) {
     if (err.errorCode === "P1000") {
       statusCode = 401;
       errorMessage = "Authentication failed. Please check your creditials!";
@@ -492,6 +247,7 @@ import { Router as Router8 } from "express";
 import { Router } from "express";
 
 // src/modules/provider/provider.service.ts
+import { Role } from "@prisma/client";
 var getProviders = async () => {
   return await prisma.providerProfile.findMany();
 };
@@ -633,10 +389,389 @@ var authorization = (...roles) => {
 };
 var authorization_default = authorization;
 
+// src/utils/QueryBuilder.ts
+var QueryBuilder = class {
+  constructor(model, queryParams, config = {}) {
+    this.model = model;
+    this.queryParams = queryParams;
+    this.config = config;
+    this.query = {
+      where: {},
+      include: {},
+      orderBy: {},
+      skip: 0,
+      take: 10
+    };
+    this.countQuery = {
+      where: {}
+    };
+  }
+  query;
+  countQuery;
+  page = 1;
+  limit = 10;
+  skip = 0;
+  sortBy = "createdAt";
+  sortOrder = "desc";
+  selectFields;
+  search() {
+    const { searchTerm } = this.queryParams;
+    const { searchableFields } = this.config;
+    if (searchTerm && searchableFields && searchableFields.length > 0) {
+      const searchConditions = searchableFields.map(
+        (field) => {
+          if (field.includes(".")) {
+            const parts = field.split(".");
+            if (parts.length === 2) {
+              const [relation, nestedField] = parts;
+              const stringFilter2 = {
+                contains: searchTerm,
+                mode: "insensitive"
+              };
+              return {
+                [relation]: {
+                  [nestedField]: stringFilter2
+                }
+              };
+            } else if (parts.length === 3) {
+              const [relation, nestedRelation, nestedField] = parts;
+              const stringFilter2 = {
+                contains: searchTerm,
+                mode: "insensitive"
+              };
+              return {
+                [relation]: {
+                  some: {
+                    [nestedRelation]: {
+                      [nestedField]: stringFilter2
+                    }
+                  }
+                }
+              };
+            }
+          }
+          const stringFilter = {
+            contains: searchTerm,
+            mode: "insensitive"
+          };
+          return {
+            [field]: stringFilter
+          };
+        }
+      );
+      const whereConditions = this.query.where;
+      whereConditions.OR = searchConditions;
+      const countWhereConditions = this.countQuery.where;
+      countWhereConditions.OR = searchConditions;
+    }
+    return this;
+  }
+  // /doctors?searchTerm=john&page=1&sortBy=name&specialty=cardiology&appointmentFee[lt]=100 => {}
+  // { specialty: 'cardiology', appointmentFee: { lt: '100' } }
+  filter() {
+    const { filterableFields } = this.config;
+    const excludedField = [
+      "searchTerm",
+      "page",
+      "limit",
+      "sortBy",
+      "sortOrder",
+      "fields",
+      "include"
+    ];
+    const filterParams = {};
+    Object.keys(this.queryParams).forEach((key) => {
+      if (!excludedField.includes(key)) {
+        filterParams[key] = this.queryParams[key];
+      }
+    });
+    const queryWhere = this.query.where;
+    const countQueryWhere = this.countQuery.where;
+    Object.keys(filterParams).forEach((key) => {
+      const value = filterParams[key];
+      if (value === void 0 || value === "") {
+        return;
+      }
+      const isAllowedField = !filterableFields || filterableFields.length === 0 || filterableFields.includes(key);
+      if (key.includes(".")) {
+        const parts = key.split(".");
+        if (filterableFields && !filterableFields.includes(key)) {
+          return;
+        }
+        if (parts.length === 2) {
+          const [relation, nestedField] = parts;
+          if (!queryWhere[relation]) {
+            queryWhere[relation] = {};
+            countQueryWhere[relation] = {};
+          }
+          const queryRelation = queryWhere[relation];
+          const countRelation = countQueryWhere[relation];
+          queryRelation[nestedField] = this.parseFilterValue(value);
+          countRelation[nestedField] = this.parseFilterValue(value);
+          return;
+        } else if (parts.length === 3) {
+          const [relation, nestedRelation, nestedField] = parts;
+          if (!queryWhere[relation]) {
+            queryWhere[relation] = {
+              some: {}
+            };
+            countQueryWhere[relation] = {
+              some: {}
+            };
+          }
+          const queryRelation = queryWhere[relation];
+          const countRelation = countQueryWhere[relation];
+          if (!queryRelation.some) {
+            queryRelation.some = {};
+          }
+          if (!countRelation.some) {
+            countRelation.some = {};
+          }
+          const querySome = queryRelation.some;
+          const countSome = countRelation.some;
+          if (!querySome[nestedRelation]) {
+            querySome[nestedRelation] = {};
+          }
+          if (!countSome[nestedRelation]) {
+            countSome[nestedRelation] = {};
+          }
+          const queryNestedRelation = querySome[nestedRelation];
+          const countNestedRelation = countSome[nestedRelation];
+          queryNestedRelation[nestedField] = this.parseFilterValue(value);
+          countNestedRelation[nestedField] = this.parseFilterValue(value);
+          return;
+        }
+      }
+      if (!isAllowedField) {
+        return;
+      }
+      if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+        queryWhere[key] = this.parseRangeFilter(
+          value
+        );
+        countQueryWhere[key] = this.parseRangeFilter(
+          value
+        );
+        return;
+      }
+      queryWhere[key] = this.parseFilterValue(value);
+      countQueryWhere[key] = this.parseFilterValue(value);
+    });
+    return this;
+  }
+  paginate() {
+    const page = Number(this.queryParams.page) || 1;
+    const limit = Number(this.queryParams.limit) || 10;
+    this.page = page;
+    this.limit = limit;
+    this.skip = (page - 1) * limit;
+    this.query.skip = this.skip;
+    this.query.take = this.limit;
+    return this;
+  }
+  sort() {
+    const sortBy = this.queryParams.sortBy || "createdAt";
+    const sortOrder = this.queryParams.sortOrder === "asc" ? "asc" : "desc";
+    this.sortBy = sortBy;
+    this.sortOrder = sortOrder;
+    if (sortBy.includes(".")) {
+      const parts = sortBy.split(".");
+      if (parts.length === 2) {
+        const [relation, nestedField] = parts;
+        this.query.orderBy = {
+          [relation]: {
+            [nestedField]: sortOrder
+          }
+        };
+      } else if (parts.length === 3) {
+        const [relation, nestedRelation, nestedField] = parts;
+        this.query.orderBy = {
+          [relation]: {
+            [nestedRelation]: {
+              [nestedField]: sortOrder
+            }
+          }
+        };
+      } else {
+        this.query.orderBy = {
+          [sortBy]: sortOrder
+        };
+      }
+    } else {
+      this.query.orderBy = {
+        [sortBy]: sortOrder
+      };
+    }
+    return this;
+  }
+  fields() {
+    const fieldsParam = this.queryParams.fields;
+    if (fieldsParam && typeof fieldsParam === "string") {
+      const fieldsArray = fieldsParam?.split(",").map((field) => field.trim());
+      this.selectFields = {};
+      fieldsArray?.forEach((field) => {
+        if (this.selectFields) {
+          this.selectFields[field] = true;
+        }
+      });
+      this.query.select = this.selectFields;
+      delete this.query.include;
+    }
+    return this;
+  }
+  include(relation) {
+    if (this.selectFields) {
+      return this;
+    }
+    this.query.include = {
+      ...this.query.include,
+      ...relation
+    };
+    return this;
+  }
+  dynamicInclude(includeConfig, defaultInclude) {
+    if (this.selectFields) {
+      return this;
+    }
+    const result = {};
+    defaultInclude?.forEach((field) => {
+      if (includeConfig[field]) {
+        result[field] = includeConfig[field];
+      }
+    });
+    const includeParam = this.queryParams.include;
+    if (includeParam && typeof includeParam === "string") {
+      const requestedRelations = includeParam.split(",").map((relation) => relation.trim());
+      requestedRelations.forEach((relation) => {
+        if (includeConfig[relation]) {
+          result[relation] = includeConfig[relation];
+        }
+      });
+    }
+    this.query.include = {
+      ...this.query.include,
+      ...result
+    };
+    return this;
+  }
+  where(condition) {
+    this.query.where = this.deepMerge(
+      this.query.where,
+      condition
+    );
+    this.countQuery.where = this.deepMerge(
+      this.countQuery.where,
+      condition
+    );
+    return this;
+  }
+  async execute() {
+    const [total, data] = await Promise.all([
+      this.model.count(
+        this.countQuery
+      ),
+      this.model.findMany(
+        this.query
+      )
+    ]);
+    const totalPages = Math.ceil(total / this.limit);
+    return {
+      data,
+      meta: {
+        page: this.page,
+        limit: this.limit,
+        total,
+        totalPages
+      }
+    };
+  }
+  async count() {
+    return await this.model.count(
+      this.countQuery
+    );
+  }
+  getQuery() {
+    return this.query;
+  }
+  deepMerge(target, source) {
+    const result = { ...target };
+    for (const key in source) {
+      if (source[key] && typeof source[key] === "object" && !Array.isArray(source[key])) {
+        if (result[key] && typeof result[key] === "object" && !Array.isArray(result[key])) {
+          result[key] = this.deepMerge(
+            result[key],
+            source[key]
+          );
+        } else {
+          result[key] = source[key];
+        }
+      } else {
+        result[key] = source[key];
+      }
+    }
+    return result;
+  }
+  parseFilterValue(value) {
+    if (value === "true") {
+      return true;
+    }
+    if (value === "false") {
+      return false;
+    }
+    if (typeof value === "string" && !isNaN(Number(value)) && value != "") {
+      return Number(value);
+    }
+    if (Array.isArray(value)) {
+      return { in: value.map((item) => this.parseFilterValue(item)) };
+    }
+    return value;
+  }
+  parseRangeFilter(value) {
+    const rangeQuery = {};
+    Object.keys(value).forEach((operator) => {
+      const operatorValue = value[operator];
+      if (operatorValue === void 0) return;
+      const parsedValue = typeof operatorValue === "string" && !isNaN(Number(operatorValue)) ? Number(operatorValue) : operatorValue;
+      switch (operator) {
+        case "lt":
+        case "lte":
+        case "gt":
+        case "gte":
+        case "equals":
+        case "not":
+        case "contains":
+        case "startsWith":
+        case "endsWith":
+          rangeQuery[operator] = parsedValue;
+          break;
+        case "in":
+        case "notIn":
+          if (Array.isArray(operatorValue)) {
+            rangeQuery[operator] = operatorValue;
+          } else {
+            rangeQuery[operator] = [parsedValue];
+          }
+          break;
+        default:
+          break;
+      }
+    });
+    return Object.keys(rangeQuery).length > 0 ? rangeQuery : value;
+  }
+};
+
 // src/modules/provider/provider.controller.ts
 var getProviders2 = async (req, res, next) => {
   try {
-    const data = await ProviderService.getProviders();
+    const queryBuilder = new QueryBuilder(
+      prisma.providerProfile,
+      req.query,
+      {
+        searchableFields: ["name", "location", "description"],
+        filterableFields: ["location"]
+      }
+    ).search().filter().sort().paginate();
+    const data = await queryBuilder.execute();
     return sendResponse(res, 200, true, "Provider Fetched Successfully", data);
   } catch (error) {
     next(error);
@@ -714,7 +849,7 @@ var router = Router();
 router.get("/", ProviderController.getProviders);
 router.post(
   "/",
-  authorization_default("USER" /* USER */, "ADMIN" /* ADMIN */),
+  authorization_default("USER" /* USER */, "ADMIN" /* ADMIN */, "PROVIDER" /* PROVIDER */),
   ProviderController.createProvider
 );
 router.get("/:id", ProviderController.getProviderWithId);
@@ -1114,7 +1249,24 @@ var OrderService = {
 // src/modules/meals/meals.controller.ts
 var getMeals2 = async (req, res, next) => {
   try {
-    const data = await MealsService.getMeals();
+    const queryBuilder = new QueryBuilder(
+      prisma.meal,
+      req.query,
+      {
+        searchableFields: ["name", "description"],
+        filterableFields: ["catagoryId", "providerId", "price"]
+      }
+    ).search().filter().sort().paginate().include({
+      provider: {
+        select: {
+          name: true,
+          location: true,
+          longitude: true,
+          latitude: true
+        }
+      }
+    });
+    const data = await queryBuilder.execute();
     return sendResponse(res, 200, true, "Meals fetched successfully", data);
   } catch (error) {
     next(error);
@@ -1243,7 +1395,7 @@ var MealsController = {
 
 // src/modules/meals/meals.route.ts
 var router3 = Router3();
-router3.get("/", authorization_default("ADMIN" /* ADMIN */), MealsController.getMeals);
+router3.get("/", MealsController.getMeals);
 router3.post("/", authorization_default("PROVIDER" /* PROVIDER */), MealsController.createMeal);
 router3.get("/:id", MealsController.getMealsById);
 router3.patch(
@@ -1748,13 +1900,14 @@ var login = async (payload) => {
   return data;
 };
 var register = async (payload) => {
-  const { name, email, password } = payload;
+  const { name, email, password, role } = payload;
   const data = await auth.api.signUpEmail({
     asResponse: true,
     body: {
       name,
       email,
-      password
+      password,
+      role: role || "USER"
     }
   });
   return data;

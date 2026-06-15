@@ -5,11 +5,35 @@ import { ProviderService } from "../provider/provider.service";
 import { prisma } from "../../lib/prisma";
 import { UserRole } from "../../middleware/authorization";
 import { OrderService } from "../order/order.service";
-
+import { QueryBuilder } from "../../utils/QueryBuilder";
+import { IQueryParams } from "../../interface/querybuilder.interface";
+import { Meal } from "@prisma/client";
 const getMeals = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // console.log(req.headers);
-    const data = await MealsService.getMeals();
+    const queryBuilder = new QueryBuilder<Meal>(
+      prisma.meal,
+      req.query as IQueryParams,
+      {
+        searchableFields: ["name", "description"],
+        filterableFields: ["catagoryId", "providerId", "price"],
+      }
+    )
+      .search()
+      .filter()
+      .sort()
+      .paginate()
+      .include({
+        provider: {
+          select: {
+            name: true,
+            location: true,
+            longitude: true,
+            latitude: true,
+          },
+        },
+      });
+
+    const data = await queryBuilder.execute();
     return sendResponse(res, 200, true, "Meals fetched successfully", data);
   } catch (error) {
     next(error);

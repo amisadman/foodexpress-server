@@ -7,7 +7,7 @@ const router: Router = Router();
 router.get("/", ProviderController.getProviders);
 router.post(
   "/",
-  authorization(UserRole.USER, UserRole.ADMIN),
+  authorization(UserRole.USER, UserRole.ADMIN, UserRole.PROVIDER),
   ProviderController.createProvider,
 );
 router.get("/:id", ProviderController.getProviderWithId);
