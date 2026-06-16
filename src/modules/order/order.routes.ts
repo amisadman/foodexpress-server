@@ -6,7 +6,7 @@ const router: Router = Router();
 
 router.get(
   "/",
-  authorization(UserRole.ADMIN, UserRole.USER),
+  authorization(UserRole.ADMIN, UserRole.USER, UserRole.PROVIDER),
   OrderController.getOrder,
 );
 router.post("/", authorization(UserRole.USER), OrderController.createOrder);

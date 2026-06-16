@@ -45,8 +45,8 @@ export const auth = betterAuth({
   },
   session: {
     //1day
-    expiresIn: 60 * 60 * 60 * 24 ,
-    updateAge: 60 * 60 * 60 * 24  ,
+    expiresIn: 60 * 60 * 60 * 24,
+    updateAge: 60 * 60 * 60 * 24,
   },
   advanced: {
     // disableCSRFCheck: true,

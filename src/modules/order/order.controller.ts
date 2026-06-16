@@ -14,6 +14,14 @@ const getOrder = async (req: Request, res: Response, next: NextFunction) => {
         req.user?.id as string,
       );
       return sendResponse(res, 200, true, "Order fetched successfully", data);
+    } else if (req.user?.role === UserRole.PROVIDER) {
+      const provider = await ProviderService.getProviderIdWithUserId(
+        req.user?.id as string,
+      );
+      const data = await OrderService.getOrdersByProviderId(
+        provider.id,
+      );
+      return sendResponse(res, 200, true, "Order fetched successfully", data);
     } else {
       throw new Error("Role not found.");
     }
