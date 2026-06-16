@@ -56,6 +56,7 @@ const getOrderWithUserId = async (userID: string) => {
           },
         },
       },
+      reviews: true,
     },
     orderBy: {
       createdAt: "desc",
@@ -152,6 +153,47 @@ const getOrdersByProviderId = async (providerId: string) => {
   });
 };
 
+const createOrderReview = async (
+  orderId: string,
+  userId: string,
+  data: { rating: number; comment?: string }
+) => {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: {
+      orderItems: true,
+      reviews: true,
+    },
+  });
+
+  if (!order) {
+    throw new Error("Order not found");
+  }
+
+  if (order.customerId !== userId) {
+    throw new Error("Unauthorized: You do not own this order");
+  }
+
+  if (order.reviews.length > 0) {
+    throw new Error("Order has already been reviewed");
+  }
+
+  return await prisma.$transaction(
+    order.orderItems.map((item) =>
+      prisma.review.create({
+        data: {
+          rating: data.rating,
+          comment: data.comment || null,
+          userId,
+          mealId: item.mealId,
+          providerId: order.providerId,
+          orderId: order.id,
+        },
+      })
+    )
+  );
+};
+
 export const OrderService = {
   hasOrdered,
   getOrders,
@@ -160,5 +202,6 @@ export const OrderService = {
   createOrder,
   editStatus,
   getUserIdWithOrderId,
-  deleteOrder
+  deleteOrder,
+  createOrderReview,
 };

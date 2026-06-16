@@ -20,5 +20,10 @@ router.delete(
   authorization(UserRole.USER),
   OrderController.deleteOrder,
 );
+router.post(
+  "/:id/reviews",
+  authorization(UserRole.USER),
+  OrderController.createOrderReview
+);
 
 export const OrdersRoute = router;

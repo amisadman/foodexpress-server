@@ -96,10 +96,33 @@ const deleteOrder = async (req: Request, res: Response, next: NextFunction) => {
     next(error);
   }
 };
+const createOrderReview = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const orderId = req.params.id;
+    const userId = req.user?.id;
+    const { rating, comment } = req.body;
+
+    if (!rating || typeof rating !== "number" || rating < 1 || rating > 5) {
+      return sendResponse(res, 400, false, "Rating is required and must be a number between 1 and 5", null);
+    }
+
+    const data = await OrderService.createOrderReview(orderId, userId as string, { rating, comment });
+    return sendResponse(res, 201, true, "Reviews submitted successfully", data);
+  } catch (error: any) {
+    if (error.message.includes("Unauthorized") || error.message.includes("own this order")) {
+      return sendResponse(res, 403, false, error.message, null);
+    }
+    if (error.message.includes("already been reviewed")) {
+      return sendResponse(res, 400, false, error.message, null);
+    }
+    next(error);
+  }
+};
 
 export const OrderController = {
   getOrder,
   createOrder,
   editStatus,
   deleteOrder,
+  createOrderReview,
 };

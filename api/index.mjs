@@ -30,7 +30,8 @@ var env = {
   adminPass: process.env.ADMIN_PASS,
   serverUrl: process.env.SERVER_URL,
   stripeSecretKey: process.env.STRIPE_SECRET_KEY,
-  stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET
+  stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
+  geminiApiKey: process.env.GEMINI_API_KEY
 };
 
 // src/lib/prisma.ts
@@ -244,7 +245,7 @@ function errorHandler(err, req, res, next) {
 var globalErrorHandler_default = errorHandler;
 
 // src/routes/index.ts
-import { Router as Router9 } from "express";
+import { Router as Router10 } from "express";
 
 // src/modules/provider/provider.routes.ts
 import { Router } from "express";
@@ -1247,7 +1248,8 @@ var getOrderWithUserId = async (userID) => {
             }
           }
         }
-      }
+      },
+      reviews: true
     },
     orderBy: {
       createdAt: "desc"
@@ -1322,6 +1324,38 @@ var getOrdersByProviderId = async (providerId) => {
     }
   });
 };
+var createOrderReview = async (orderId, userId, data) => {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: {
+      orderItems: true,
+      reviews: true
+    }
+  });
+  if (!order) {
+    throw new Error("Order not found");
+  }
+  if (order.customerId !== userId) {
+    throw new Error("Unauthorized: You do not own this order");
+  }
+  if (order.reviews.length > 0) {
+    throw new Error("Order has already been reviewed");
+  }
+  return await prisma.$transaction(
+    order.orderItems.map(
+      (item) => prisma.review.create({
+        data: {
+          rating: data.rating,
+          comment: data.comment || null,
+          userId,
+          mealId: item.mealId,
+          providerId: order.providerId,
+          orderId: order.id
+        }
+      })
+    )
+  );
+};
 var OrderService = {
   hasOrdered,
   getOrders,
@@ -1330,7 +1364,8 @@ var OrderService = {
   createOrder,
   editStatus,
   getUserIdWithOrderId,
-  deleteOrder
+  deleteOrder,
+  createOrderReview
 };
 
 // src/modules/meals/meals.controller.ts
@@ -1604,11 +1639,32 @@ var deleteOrder2 = async (req, res, next) => {
     next(error);
   }
 };
+var createOrderReview2 = async (req, res, next) => {
+  try {
+    const orderId = req.params.id;
+    const userId = req.user?.id;
+    const { rating, comment } = req.body;
+    if (!rating || typeof rating !== "number" || rating < 1 || rating > 5) {
+      return sendResponse(res, 400, false, "Rating is required and must be a number between 1 and 5", null);
+    }
+    const data = await OrderService.createOrderReview(orderId, userId, { rating, comment });
+    return sendResponse(res, 201, true, "Reviews submitted successfully", data);
+  } catch (error) {
+    if (error.message.includes("Unauthorized") || error.message.includes("own this order")) {
+      return sendResponse(res, 403, false, error.message, null);
+    }
+    if (error.message.includes("already been reviewed")) {
+      return sendResponse(res, 400, false, error.message, null);
+    }
+    next(error);
+  }
+};
 var OrderController = {
   getOrder,
   createOrder: createOrder2,
   editStatus: editStatus2,
-  deleteOrder: deleteOrder2
+  deleteOrder: deleteOrder2,
+  createOrderReview: createOrderReview2
 };
 
 // src/modules/order/order.routes.ts
@@ -1628,6 +1684,11 @@ router4.delete(
   "/:id",
   authorization_default("USER" /* USER */),
   OrderController.deleteOrder
+);
+router4.post(
+  "/:id/reviews",
+  authorization_default("USER" /* USER */),
+  OrderController.createOrderReview
 );
 var OrdersRoute = router4;
 
@@ -2224,17 +2285,102 @@ router8.post(
 router8.post("/webhook", PaymentsController.handleWebhook);
 var PaymentsRoute = router8;
 
-// src/routes/index.ts
+// src/modules/ai/ai.routes.ts
+import { Router as Router9 } from "express";
+
+// src/modules/ai/ai.service.ts
+import { GoogleGenerativeAI } from "@google/generative-ai";
+var AiService = {
+  rephrase: async (text, tone = "appetizing") => {
+    const apiKey = env.geminiApiKey || process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      console.warn("GEMINI_API_KEY not found in environment, using offline rephrase fallback.");
+      return mockRephrase(text, tone);
+    }
+    try {
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const prompt = `You are a professional copywriter for a premium food delivery service named FoodExpress. 
+Your task is to rephrase the following text to sound extremely ${tone}, appealing, and high-quality.
+Keep it natural, clean, and engaging.
+Limit your response to a single, concise paragraph of max 250 characters. Do not include markdown formatting or quotation marks.
+
+Original text:
+${text}`;
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const enhancedText = response.text();
+      return enhancedText.trim().replace(/^["']|["']$/g, "");
+    } catch (error) {
+      console.error("Gemini AI API call failed, falling back to mock rephrase:", error);
+      return mockRephrase(text, tone);
+    }
+  }
+};
+function mockRephrase(text, tone) {
+  const cleanText = text.trim();
+  if (!cleanText) return "";
+  const appetizers = [
+    "Indulge in our mouth-watering",
+    "Savor the exquisite flavors of our freshly prepared",
+    "Treat yourself to our signature",
+    "Experience pure culinary delight with our premium",
+    "Enjoy the rich, authentic taste of our delicious"
+  ];
+  const descriptives = [
+    "expertly crafted using select, farm-fresh ingredients for an unforgettable flavor experience.",
+    "cooked to golden perfection and seasoned with a unique blend of aromatic spices.",
+    "a chef-inspired masterpiece that is perfect for sharing or enjoying all to yourself.",
+    "delivered hot and fresh, showcasing premium quality in every bite."
+  ];
+  const templateIdx1 = cleanText.length % appetizers.length;
+  const templateIdx2 = (cleanText.length + 3) % descriptives.length;
+  const prefix = appetizers[templateIdx1];
+  const suffix = descriptives[templateIdx2];
+  if (cleanText.includes(".") || cleanText.length > 50) {
+    return `\u2728 [Enhanced] ${prefix} selection: ${cleanText} - all crafted with premium ingredients for the perfect meal experience.`;
+  }
+  return `${prefix} ${cleanText}, ${suffix}`;
+}
+
+// src/modules/ai/ai.controller.ts
+var rephraseText = async (req, res, next) => {
+  try {
+    const { text, tone } = req.body;
+    if (!text || typeof text !== "string") {
+      return sendResponse(res, 400, false, "Text is required and must be a string", null);
+    }
+    const rephrased = await AiService.rephrase(text, tone);
+    return sendResponse(res, 200, true, "Text rephrased successfully", { text: rephrased });
+  } catch (error) {
+    next(error);
+  }
+};
+var AiController = {
+  rephraseText
+};
+
+// src/modules/ai/ai.routes.ts
 var router9 = Router9();
-router9.use("/providers", ProviderRouter);
-router9.use("/user", UserRouter);
-router9.use("/meals", MealsRoute);
-router9.use("/orders", OrdersRoute);
-router9.use("/analytics", AnalyticsRoute);
-router9.use("/categories", CategoryRoutes);
-router9.use("/payments", PaymentsRoute);
-router9.use("/auth", AuthRoutes);
-var routes = router9;
+router9.post(
+  "/rephrase",
+  authorization_default("PROVIDER" /* PROVIDER */, "ADMIN" /* ADMIN */),
+  AiController.rephraseText
+);
+var AiRouter = router9;
+
+// src/routes/index.ts
+var router10 = Router10();
+router10.use("/providers", ProviderRouter);
+router10.use("/user", UserRouter);
+router10.use("/meals", MealsRoute);
+router10.use("/orders", OrdersRoute);
+router10.use("/analytics", AnalyticsRoute);
+router10.use("/categories", CategoryRoutes);
+router10.use("/payments", PaymentsRoute);
+router10.use("/ai", AiRouter);
+router10.use("/auth", AuthRoutes);
+var routes = router10;
 
 // src/app.ts
 var app = express();

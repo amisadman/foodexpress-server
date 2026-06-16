@@ -7,6 +7,7 @@ import { AnalyticsRoute } from "../modules/analytics/analytics.routes";
 import { CategoryRoutes } from "../modules/category/category.routes";
 import { AuthRoutes } from "../modules/auth/auth.routes";
 import { PaymentsRoute } from "../modules/payments/payments.route";
+import { AiRouter } from "../modules/ai/ai.routes";
 
 
 const router: Router = Router();
@@ -18,6 +19,7 @@ router.use("/orders", OrdersRoute);
 router.use("/analytics", AnalyticsRoute);
 router.use("/categories", CategoryRoutes);
 router.use("/payments", PaymentsRoute);
+router.use("/ai", AiRouter);
 
 router.use("/auth",AuthRoutes);
 export const routes = router;
