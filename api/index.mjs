@@ -2091,6 +2091,7 @@ var PaymentsService = {
       (sum, item) => sum + item.price * item.quantity,
       0
     );
+    const paymentMethod = orderData.paymentMethod === "COD" ? "COD" : "STRIPE";
     const order = await prisma.order.create({
       data: {
         delivaryAddress: orderData.delivaryAddress,
@@ -2101,6 +2102,7 @@ var PaymentsService = {
         customerId: userId,
         providerId,
         paymentStatus: "PENDING",
+        paymentMethod,
         status: "PLACED",
         orderItems: {
           create: secureOrderItems.map((item) => ({
@@ -2111,6 +2113,9 @@ var PaymentsService = {
         }
       }
     });
+    if (paymentMethod === "COD") {
+      return { orderId: order.id };
+    }
     const lineItems = secureOrderItems.map((item) => ({
       price_data: {
         currency: "usd",
@@ -2143,7 +2148,7 @@ var PaymentsService = {
         userId
       }
     });
-    return session.url;
+    return { url: session.url || "" };
   },
   handleWebhook: async (rawBody, signature) => {
     let event;
@@ -2182,13 +2187,11 @@ var createCheckoutSession = async (req, res, next) => {
     if (!userId) {
       throw new Error("Unauthorized user session");
     }
-    const sessionUrl = await PaymentsService.createCheckoutSession(
+    const result = await PaymentsService.createCheckoutSession(
       req.body,
       userId
     );
-    return sendResponse(res, 201, true, "Checkout session created successfully", {
-      url: sessionUrl
-    });
+    return sendResponse(res, 201, true, "Order checkout initiated successfully", result);
   } catch (error) {
     next(error);
   }

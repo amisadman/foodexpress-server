@@ -38,6 +38,8 @@ export const PaymentsService = {
       0
     );
 
+    const paymentMethod = orderData.paymentMethod === "COD" ? "COD" : "STRIPE";
+
     // 2. Create the PENDING order in the database first
     const order = await prisma.order.create({
       data: {
@@ -48,6 +50,7 @@ export const PaymentsService = {
         customerId: userId,
         providerId: providerId,
         paymentStatus: "PENDING",
+        paymentMethod: paymentMethod,
         status: "PLACED",
         orderItems: {
           create: secureOrderItems.map((item: any) => ({
@@ -58,6 +61,10 @@ export const PaymentsService = {
         },
       },
     });
+
+    if (paymentMethod === "COD") {
+      return { orderId: order.id };
+    }
 
     // 3. Prepare Stripe Line Items (amounts must be in cents)
     const lineItems = secureOrderItems.map((item: any) => ({
@@ -97,7 +104,7 @@ export const PaymentsService = {
       },
     });
 
-    return session.url;
+    return { url: session.url || "" };
   },
 
   handleWebhook: async (rawBody: Buffer, signature: string) => {

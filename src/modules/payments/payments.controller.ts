@@ -13,14 +13,12 @@ const createCheckoutSession = async (
       throw new Error("Unauthorized user session");
     }
 
-    const sessionUrl = await PaymentsService.createCheckoutSession(
+    const result = await PaymentsService.createCheckoutSession(
       req.body,
       userId
     );
 
-    return sendResponse(res, 201, true, "Checkout session created successfully", {
-      url: sessionUrl,
-    });
+    return sendResponse(res, 201, true, "Order checkout initiated successfully", result);
   } catch (error) {
     next(error);
   }
