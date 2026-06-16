@@ -13,4 +13,6 @@ export const env = {
   adminEmail: process.env.ADMIN_EMAIL,
   adminPass: process.env.ADMIN_PASS,
   serverUrl: process.env.SERVER_URL,
+  stripeSecretKey: process.env.STRIPE_SECRET_KEY,
+  stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
 };

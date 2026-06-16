@@ -142,6 +142,8 @@ model Meal {
 model Order {
   id              String          @id @default(uuid())
   status          OrderStatus     @default(PLACED)
+  paymentStatus   PaymentStatus   @default(PENDING)
+  transactionId   String?         @unique
   delivaryAddress String
   longitude       Float?
   latitude        Float?
@@ -165,6 +167,12 @@ enum OrderStatus {
   READY
   DELIVERED
   CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
 }
 
 model OrderItem {

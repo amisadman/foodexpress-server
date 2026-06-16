@@ -11,7 +11,13 @@ import { routes } from "./routes";
 import { env } from "./config/env";
 
 const app: Application = express();
-app.use(express.json());
+app.use(
+  express.json({
+    verify: (req: any, res, buf) => {
+      req.rawBody = buf;
+    },
+  })
+);
 app.use( cors({
     origin: env.appUrl,
     credentials: true,
