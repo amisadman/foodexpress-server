@@ -31,6 +31,19 @@ const getMeals = async (req: Request, res: Response, next: NextFunction) => {
             latitude: true,
           },
         },
+        reviews: {
+          include: {
+            user: {
+              select: {
+                name: true,
+                image: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
       });
 
     const data = await queryBuilder.execute();

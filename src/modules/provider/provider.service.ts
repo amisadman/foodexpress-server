@@ -64,6 +64,22 @@ const getProviderWithId = async (id: string) => {
     where: {
       id: id,
     },
+    include: {
+      reviews: {
+        include: {
+          user: {
+            select: {
+              name: true,
+              image: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: 10,
+      },
+    },
   });
 };
 const deleteProvider = async (id: string) => {

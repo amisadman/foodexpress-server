@@ -305,6 +305,22 @@ var getProviderWithId = async (id) => {
   return await prisma.providerProfile.findUniqueOrThrow({
     where: {
       id
+    },
+    include: {
+      reviews: {
+        include: {
+          user: {
+            select: {
+              name: true,
+              image: true
+            }
+          }
+        },
+        orderBy: {
+          createdAt: "desc"
+        },
+        take: 10
+      }
     }
   });
 };
@@ -1085,6 +1101,19 @@ var getMeals = async () => {
           longitude: true,
           latitude: true
         }
+      },
+      reviews: {
+        include: {
+          user: {
+            select: {
+              name: true,
+              image: true
+            }
+          }
+        },
+        orderBy: {
+          createdAt: "desc"
+        }
       }
     }
   });
@@ -1107,6 +1136,19 @@ var getMealsByProviderId = async (providerId) => {
           longitude: true,
           latitude: true
         }
+      },
+      reviews: {
+        include: {
+          user: {
+            select: {
+              name: true,
+              image: true
+            }
+          }
+        },
+        orderBy: {
+          createdAt: "desc"
+        }
       }
     }
   });
@@ -1123,6 +1165,19 @@ var getMealsById = async (id) => {
           location: true,
           longitude: true,
           latitude: true
+        }
+      },
+      reviews: {
+        include: {
+          user: {
+            select: {
+              name: true,
+              image: true
+            }
+          }
+        },
+        orderBy: {
+          createdAt: "desc"
         }
       }
     }
@@ -1385,6 +1440,19 @@ var getMeals2 = async (req, res, next) => {
           location: true,
           longitude: true,
           latitude: true
+        }
+      },
+      reviews: {
+        include: {
+          user: {
+            select: {
+              name: true,
+              image: true
+            }
+          }
+        },
+        orderBy: {
+          createdAt: "desc"
         }
       }
     });

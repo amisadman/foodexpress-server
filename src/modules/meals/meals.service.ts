@@ -22,6 +22,19 @@ const getMeals = async () => {
           latitude: true,
         },
       },
+      reviews: {
+        include: {
+          user: {
+            select: {
+              name: true,
+              image: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
     },
   });
 };
@@ -45,6 +58,19 @@ const getMealsByProviderId = async (providerId: string) => {
           latitude: true,
         },
       },
+      reviews: {
+        include: {
+          user: {
+            select: {
+              name: true,
+              image: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
     },
   });
 };
@@ -60,6 +86,19 @@ const getMealsById = async (id: string) => {
           location: true,
           longitude: true,
           latitude: true,
+        },
+      },
+      reviews: {
+        include: {
+          user: {
+            select: {
+              name: true,
+              image: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
         },
       },
     },
