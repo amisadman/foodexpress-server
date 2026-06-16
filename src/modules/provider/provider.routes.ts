@@ -10,6 +10,7 @@ router.post(
   authorization(UserRole.USER, UserRole.ADMIN, UserRole.PROVIDER),
   ProviderController.createProvider,
 );
+router.get("/me", authorization(UserRole.PROVIDER), ProviderController.getMyProfile);
 router.get("/:id", ProviderController.getProviderWithId);
 router.patch(
   "/:id",

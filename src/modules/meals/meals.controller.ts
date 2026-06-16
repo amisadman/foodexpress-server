@@ -40,6 +40,19 @@ const getMeals = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
+const getMealsByProviderId = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const data = await MealsService.getMealsByProviderId(req.params.providerId as string);
+    return sendResponse(res, 200, true, "Meals fetched successfully", data);
+  } catch (error) {
+    next(error);
+  }
+};
+
 const getMealsById = async (
   req: Request,
   res: Response,
@@ -179,6 +192,7 @@ const deleteMeal = async (req: Request, res: Response, next: NextFunction) => {
 
 export const MealsController = {
   getMeals,
+  getMealsByProviderId,
   createMeal,
   getMealsById,
   editMeal,

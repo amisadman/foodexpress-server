@@ -63,6 +63,19 @@ const getProviderWithId = async (
     next(error);
   }
 };
+
+const getMyProfile = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const data = await ProviderService.getProviderIdWithUserId(req.user?.id as string);
+    return sendResponse(res, 200, true, "Provider Fetched Successfully", data);
+  } catch (error) {
+    next(error);
+  }
+};
 const editProvider = async (
   req: Request,
   res: Response,
@@ -119,6 +132,7 @@ const deleteProvider = async (
 export const ProviderController = {
   getProviders,
   getProviderWithId,
+  getMyProfile,
   createProvider,
   editProvider,
   deleteProvider,
