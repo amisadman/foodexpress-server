@@ -1,4 +1,4 @@
-import { Meal, Review } from "../../../generated/prisma/client";
+import { Meal, Review } from "@prisma/client";
 import { prisma } from "../../lib/prisma";
 
 const getProviderIdWithMealId = async (id: string) => {
@@ -14,6 +14,29 @@ const getProviderIdWithMealId = async (id: string) => {
 const getMeals = async () => {
   return await prisma.meal.findMany({
     include: {
+      provider: {
+        select: {
+          name: true,
+          location: true,
+          longitude: true,
+          latitude: true,
+        },
+      },
+    },
+  });
+};
+
+const getMealsByProviderId = async (providerId: string) => {
+  return await prisma.meal.findMany({
+    where: {
+      providerId,
+    },
+    include: {
+      category: {
+        select: {
+          name: true,
+        },
+      },
       provider: {
         select: {
           name: true,
@@ -110,6 +133,7 @@ const deleteMeal = async (id: string) => {
 
 export const MealsService = {
   getMeals,
+  getMealsByProviderId,
   createMeal,
   getMealsById,
   getProviderIdWithMealId,

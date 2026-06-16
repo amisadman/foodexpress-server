@@ -5,8 +5,7 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -101,6 +100,8 @@ model ProviderProfile {
   longitude   Float?
   latitude    Float?
   description String?
+  image       String?
+  rating      Float    @default(5.0)
   userId      String   @unique
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())

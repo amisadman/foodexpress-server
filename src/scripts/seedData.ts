@@ -1,4 +1,4 @@
-import { ProviderProfile } from "../../generated/prisma/client";
+import { ProviderProfile } from "@prisma/client";
 import { auth } from "../lib/auth";
 import { prisma } from "../lib/prisma";
 
@@ -59,11 +59,11 @@ const seedUsers = async()=> {
 
 const seedProviders = async()=> {
   const restaurants = [
-    { name: "Tasty Kitchen", location: "Dhaka", userId: userIds[5] },
-    { name: "Spicy House", location: "Sylhet", userId: userIds[6] },
-    { name: "Green Bowl", location: "Chittagong", userId: userIds[7] },
-    { name: "Urban Eats", location: "Khulna", userId: userIds[8] },
-    { name: "Food Street", location: "Rajshahi", userId: userIds[9] },
+    { name: "Tasty Kitchen", location: "Dhaka", userId: userIds[5] as string },
+    { name: "Spicy House", location: "Sylhet", userId: userIds[6] as string },
+    { name: "Green Bowl", location: "Chittagong", userId: userIds[7] as string },
+    { name: "Urban Eats", location: "Khulna", userId: userIds[8] as string },
+    { name: "Food Street", location: "Rajshahi", userId: userIds[9] as string },
   ];
 
   for (const r of restaurants) {

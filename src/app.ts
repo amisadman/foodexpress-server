@@ -12,11 +12,11 @@ import { env } from "./config/env";
 
 const app: Application = express();
 app.use(express.json());
-app.use( cors({
-    origin: env.appUrl,
-    credentials: true,
-  }),);
-app.use(morgan("combined", { stream: accessLogStream }));
+// app.use( cors({
+//     origin: env.appUrl,
+//     credentials: true,
+//   }),);
+app.use(morgan("combined"));
 app.all("/api/auth/*splat", toNodeHandler(auth));
 
 app.use("/api/v1", routes);

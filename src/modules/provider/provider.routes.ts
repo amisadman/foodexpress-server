@@ -7,9 +7,10 @@ const router: Router = Router();
 router.get("/", ProviderController.getProviders);
 router.post(
   "/",
-  authorization(UserRole.USER, UserRole.ADMIN),
+  authorization(UserRole.USER, UserRole.ADMIN, UserRole.PROVIDER),
   ProviderController.createProvider,
 );
+router.get("/me", authorization(UserRole.PROVIDER), ProviderController.getMyProfile);
 router.get("/:id", ProviderController.getProviderWithId);
 router.patch(
   "/:id",

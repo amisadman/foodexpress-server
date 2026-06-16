@@ -10,6 +10,7 @@ interface RegisterPayload {
   name: string;
   image?: string;
   phone?: string;
+  role?: string;
 }
 
 const login = async (payload: LoginPayload) => {
@@ -31,7 +32,7 @@ const login = async (payload: LoginPayload) => {
 };
 
 const register = async (payload: RegisterPayload) => {
-  const { name, email, password } = payload;
+  const { name, email, password, role } = payload;
 
   const data = await auth.api.signUpEmail({
     asResponse: true,
@@ -39,6 +40,7 @@ const register = async (payload: RegisterPayload) => {
       name,
       email,
       password,
+      role: role || "USER",
     },
   });
   
