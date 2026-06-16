@@ -102,6 +102,18 @@ const updateUserStatus = async (
 const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id;
+    const userId = req.user?.id;
+    const role = req.user?.role;
+
+    if (role !== UserRole.ADMIN && id !== userId) {
+      return sendResponse(
+        res,
+        403,
+        false,
+        "Forbidden, You can only delete your own account",
+      );
+    }
+
     const data = await UserService.deleteUser(id as string);
 
     return sendResponse(res, 200, true, "User Deleted Successfully", data);

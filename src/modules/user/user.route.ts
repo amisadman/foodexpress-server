@@ -25,6 +25,10 @@ router.patch(
   authorization(UserRole.ADMIN),
   UserController.updateUserStatus,
 );
-router.delete("/:id", authorization(UserRole.ADMIN), UserController.deleteUser);
+router.delete(
+  "/:id",
+  authorization(UserRole.ADMIN, UserRole.PROVIDER, UserRole.USER),
+  UserController.deleteUser,
+);
 
 export const UserRouter: Router = router;

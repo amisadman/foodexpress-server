@@ -83,11 +83,20 @@ const getProviderWithId = async (id: string) => {
   });
 };
 const deleteProvider = async (id: string) => {
-  return await prisma.providerProfile.delete({
-    where: {
-      id: id,
-    },
+  const provider = await prisma.providerProfile.findUniqueOrThrow({
+    where: { id },
+    select: { userId: true },
   });
+
+  return await prisma.$transaction([
+    prisma.providerProfile.delete({
+      where: { id },
+    }),
+    prisma.user.update({
+      where: { id: provider.userId },
+      data: { role: Role.USER },
+    }),
+  ]);
 };
 const getProviderIdWithOrderId = async (id: string) => {
   return await prisma.order.findUnique({

@@ -99,36 +99,23 @@ const getProviderAnalytics = async (providerId: string) => {
     avgRatingAgg,
     newReviews7Days,
     newOrders7Days,
+    recentReviews,
   ] = await Promise.all([
     prisma.meal.count({ where: { providerId } }),
 
     prisma.order.count({
-      where: {
-        orderItems: {
-          some: {
-            meal: { providerId },
-          },
-        },
-      },
+      where: { providerId },
     }),
 
-    prisma.orderItem.aggregate({
-      _sum: { price: true },
-      where: {
-        meal: { providerId },
-      },
+    prisma.order.aggregate({
+      _sum: { totalPrice: true },
+      where: { providerId },
     }),
 
     prisma.order.groupBy({
       by: ["status"],
       _count: { id: true },
-      where: {
-        orderItems: {
-          some: {
-            meal: { providerId },
-          },
-        },
-      },
+      where: { providerId },
     }),
 
     prisma.order.groupBy({
@@ -136,11 +123,7 @@ const getProviderAnalytics = async (providerId: string) => {
       _count: { id: true },
       where: {
         createdAt: { gte: sevenDaysAgo },
-        orderItems: {
-          some: {
-            meal: { providerId },
-          },
-        },
+        providerId,
       },
     }),
 
@@ -173,12 +156,24 @@ const getProviderAnalytics = async (providerId: string) => {
     prisma.order.count({
       where: {
         createdAt: { gte: sevenDaysAgo },
-        orderItems: {
-          some: {
-            meal: { providerId },
+        providerId,
+      },
+    }),
+
+    prisma.review.findMany({
+      where: { providerId },
+      include: {
+        user: {
+          select: {
+            name: true,
+            image: true,
           },
         },
       },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 3,
     }),
   ]);
 
@@ -192,7 +187,7 @@ const getProviderAnalytics = async (providerId: string) => {
     overview: {
       totalMeals,
       totalOrders,
-      totalRevenue: revenueAgg._sum.price || 0,
+      totalRevenue: revenueAgg._sum.totalPrice || 0,
       totalReviews,
       avgRating: avgRatingAgg._avg.rating || 0,
     },
@@ -209,6 +204,7 @@ const getProviderAnalytics = async (providerId: string) => {
     },
     reviews: {
       newLast7Days: newReviews7Days,
+      recent: recentReviews,
     },
   };
 };

@@ -325,11 +325,19 @@ var getProviderWithId = async (id) => {
   });
 };
 var deleteProvider = async (id) => {
-  return await prisma.providerProfile.delete({
-    where: {
-      id
-    }
+  const provider = await prisma.providerProfile.findUniqueOrThrow({
+    where: { id },
+    select: { userId: true }
   });
+  return await prisma.$transaction([
+    prisma.providerProfile.delete({
+      where: { id }
+    }),
+    prisma.user.update({
+      where: { id: provider.userId },
+      data: { role: Role.USER }
+    })
+  ]);
 };
 var getProviderIdWithOrderId = async (id) => {
   return await prisma.order.findUnique({
@@ -1053,6 +1061,16 @@ var updateUserStatus2 = async (req, res, next) => {
 var deleteUser2 = async (req, res, next) => {
   try {
     const id = req.params.id;
+    const userId = req.user?.id;
+    const role = req.user?.role;
+    if (role !== "ADMIN" /* ADMIN */ && id !== userId) {
+      return sendResponse(
+        res,
+        403,
+        false,
+        "Forbidden, You can only delete your own account"
+      );
+    }
     const data = await UserService.deleteUser(id);
     return sendResponse(res, 200, true, "User Deleted Successfully", data);
   } catch (error) {
@@ -1091,7 +1109,11 @@ router2.patch(
   authorization_default("ADMIN" /* ADMIN */),
   UserController.updateUserStatus
 );
-router2.delete("/:id", authorization_default("ADMIN" /* ADMIN */), UserController.deleteUser);
+router2.delete(
+  "/:id",
+  authorization_default("ADMIN" /* ADMIN */, "PROVIDER" /* PROVIDER */, "USER" /* USER */),
+  UserController.deleteUser
+);
 var UserRouter = router2;
 
 // src/modules/meals/meals.route.ts
@@ -1877,45 +1899,28 @@ var getProviderAnalytics = async (providerId) => {
     totalReviews,
     avgRatingAgg,
     newReviews7Days,
-    newOrders7Days
+    newOrders7Days,
+    recentReviews
   ] = await Promise.all([
     prisma.meal.count({ where: { providerId } }),
     prisma.order.count({
-      where: {
-        orderItems: {
-          some: {
-            meal: { providerId }
-          }
-        }
-      }
+      where: { providerId }
     }),
-    prisma.orderItem.aggregate({
-      _sum: { price: true },
-      where: {
-        meal: { providerId }
-      }
+    prisma.order.aggregate({
+      _sum: { totalPrice: true },
+      where: { providerId }
     }),
     prisma.order.groupBy({
       by: ["status"],
       _count: { id: true },
-      where: {
-        orderItems: {
-          some: {
-            meal: { providerId }
-          }
-        }
-      }
+      where: { providerId }
     }),
     prisma.order.groupBy({
       by: ["createdAt"],
       _count: { id: true },
       where: {
         createdAt: { gte: sevenDaysAgo },
-        orderItems: {
-          some: {
-            meal: { providerId }
-          }
-        }
+        providerId
       }
     }),
     prisma.orderItem.groupBy({
@@ -1943,12 +1948,23 @@ var getProviderAnalytics = async (providerId) => {
     prisma.order.count({
       where: {
         createdAt: { gte: sevenDaysAgo },
-        orderItems: {
-          some: {
-            meal: { providerId }
+        providerId
+      }
+    }),
+    prisma.review.findMany({
+      where: { providerId },
+      include: {
+        user: {
+          select: {
+            name: true,
+            image: true
           }
         }
-      }
+      },
+      orderBy: {
+        createdAt: "desc"
+      },
+      take: 3
     })
   ]);
   const topMealIds = topMealsAgg.map((m) => m.mealId);
@@ -1959,7 +1975,7 @@ var getProviderAnalytics = async (providerId) => {
     overview: {
       totalMeals,
       totalOrders,
-      totalRevenue: revenueAgg._sum.price || 0,
+      totalRevenue: revenueAgg._sum.totalPrice || 0,
       totalReviews,
       avgRating: avgRatingAgg._avg.rating || 0
     },
@@ -1975,7 +1991,8 @@ var getProviderAnalytics = async (providerId) => {
       }))
     },
     reviews: {
-      newLast7Days: newReviews7Days
+      newLast7Days: newReviews7Days,
+      recent: recentReviews
     }
   };
 };
