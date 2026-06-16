@@ -945,6 +945,9 @@ var getUserWithId = async (id) => {
   return await prisma.user.findUniqueOrThrow({
     where: {
       id
+    },
+    include: {
+      providerProfile: true
     }
   });
 };
@@ -1091,17 +1094,17 @@ var router2 = Router2();
 router2.get("/", authorization_default("ADMIN" /* ADMIN */), UserController.getUsers);
 router2.get(
   "/me",
-  authorization_default("USER" /* USER */, "ADMIN" /* ADMIN */),
+  authorization_default("USER" /* USER */, "ADMIN" /* ADMIN */, "PROVIDER" /* PROVIDER */),
   UserController.getMe
 );
 router2.get(
   "/:id",
-  authorization_default("USER" /* USER */, "ADMIN" /* ADMIN */),
+  authorization_default("USER" /* USER */, "ADMIN" /* ADMIN */, "PROVIDER" /* PROVIDER */),
   UserController.getUserWithId
 );
 router2.patch(
   "/:id",
-  authorization_default("USER" /* USER */, "ADMIN" /* ADMIN */),
+  authorization_default("USER" /* USER */, "ADMIN" /* ADMIN */, "PROVIDER" /* PROVIDER */),
   UserController.updateUser
 );
 router2.patch(

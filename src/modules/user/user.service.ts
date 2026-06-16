@@ -23,6 +23,9 @@ const getUserWithId = async (id: string) => {
     where: {
       id,
     },
+    include: {
+      providerProfile: true,
+    },
   });
 };
 
