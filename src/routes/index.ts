@@ -15,7 +15,7 @@ router.use("/providers", ProviderRouter);
 router.use("/user", UserRouter);
 router.use("/meals", MealsRoute);
 router.use("/orders", OrdersRoute);
-router.use("/get-analytics",AnalyticsRoute);
+router.use("/analytics", AnalyticsRoute);
 router.use("/categories", CategoryRoutes);
 router.use("/payments", PaymentsRoute);
 

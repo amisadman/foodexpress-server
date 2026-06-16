@@ -1,6 +1,7 @@
 // src/app.ts
 import express from "express";
 import os from "os";
+import cors from "cors";
 import morgan from "morgan";
 import { toNodeHandler } from "better-auth/node";
 
@@ -27,7 +28,9 @@ var env = {
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
   adminEmail: process.env.ADMIN_EMAIL,
   adminPass: process.env.ADMIN_PASS,
-  serverUrl: process.env.SERVER_URL
+  serverUrl: process.env.SERVER_URL,
+  stripeSecretKey: process.env.STRIPE_SECRET_KEY,
+  stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET
 };
 
 // src/lib/prisma.ts
@@ -128,7 +131,7 @@ var auth = betterAuth({
     provider: "postgresql"
     // or "mysql", "postgresql", ...etc
   }),
-  // trustedOrigins: [env.appUrl as string],
+  trustedOrigins: [env.appUrl],
   user: {
     additionalFields: {
       role: {
@@ -241,7 +244,7 @@ function errorHandler(err, req, res, next) {
 var globalErrorHandler_default = errorHandler;
 
 // src/routes/index.ts
-import { Router as Router8 } from "express";
+import { Router as Router9 } from "express";
 
 // src/modules/provider/provider.routes.ts
 import { Router } from "express";
@@ -406,6 +409,9 @@ var QueryBuilder = class {
       where: {}
     };
   }
+  model;
+  queryParams;
+  config;
   query;
   countQuery;
   page = 1;
@@ -466,8 +472,6 @@ var QueryBuilder = class {
     }
     return this;
   }
-  // /doctors?searchTerm=john&page=1&sortBy=name&specialty=cardiology&appointmentFee[lt]=100 => {}
-  // { specialty: 'cardiology', appointmentFee: { lt: '100' } }
   filter() {
     const { filterableFields } = this.config;
     const excludedField = [
@@ -798,6 +802,14 @@ var getProviderWithId2 = async (req, res, next) => {
     next(error);
   }
 };
+var getMyProfile = async (req, res, next) => {
+  try {
+    const data = await ProviderService.getProviderIdWithUserId(req.user?.id);
+    return sendResponse(res, 200, true, "Provider Fetched Successfully", data);
+  } catch (error) {
+    next(error);
+  }
+};
 var editProvider2 = async (req, res, next) => {
   try {
     const id = req.params.id;
@@ -839,6 +851,7 @@ var deleteProvider2 = async (req, res, next) => {
 var ProviderController = {
   getProviders: getProviders2,
   getProviderWithId: getProviderWithId2,
+  getMyProfile,
   createProvider: createProvider2,
   editProvider: editProvider2,
   deleteProvider: deleteProvider2
@@ -852,6 +865,7 @@ router.post(
   authorization_default("USER" /* USER */, "ADMIN" /* ADMIN */, "PROVIDER" /* PROVIDER */),
   ProviderController.createProvider
 );
+router.get("/me", authorization_default("PROVIDER" /* PROVIDER */), ProviderController.getMyProfile);
 router.get("/:id", ProviderController.getProviderWithId);
 router.patch(
   "/:id",
@@ -1074,6 +1088,28 @@ var getMeals = async () => {
     }
   });
 };
+var getMealsByProviderId = async (providerId) => {
+  return await prisma.meal.findMany({
+    where: {
+      providerId
+    },
+    include: {
+      category: {
+        select: {
+          name: true
+        }
+      },
+      provider: {
+        select: {
+          name: true,
+          location: true,
+          longitude: true,
+          latitude: true
+        }
+      }
+    }
+  });
+};
 var getMealsById = async (id) => {
   return await prisma.meal.findFirstOrThrow({
     where: {
@@ -1149,6 +1185,7 @@ var deleteMeal = async (id) => {
 };
 var MealsService = {
   getMeals,
+  getMealsByProviderId,
   createMeal,
   getMealsById,
   getProviderIdWithMealId: getProviderIdWithMealId2,
@@ -1193,6 +1230,27 @@ var getOrderWithUserId = async (userID) => {
   return await prisma.order.findMany({
     where: {
       customerId: userID
+    },
+    include: {
+      provider: {
+        select: {
+          name: true,
+          location: true
+        }
+      },
+      orderItems: {
+        include: {
+          meal: {
+            select: {
+              name: true,
+              image: true
+            }
+          }
+        }
+      }
+    },
+    orderBy: {
+      createdAt: "desc"
     }
   });
 };
@@ -1236,10 +1294,39 @@ var deleteOrder = async (id) => {
     }
   });
 };
+var getOrdersByProviderId = async (providerId) => {
+  return await prisma.order.findMany({
+    where: {
+      providerId
+    },
+    include: {
+      orderItems: {
+        include: {
+          meal: {
+            select: {
+              name: true,
+              image: true
+            }
+          }
+        }
+      },
+      customer: {
+        select: {
+          name: true,
+          email: true
+        }
+      }
+    },
+    orderBy: {
+      createdAt: "desc"
+    }
+  });
+};
 var OrderService = {
   hasOrdered,
   getOrders,
   getOrderWithUserId,
+  getOrdersByProviderId,
   createOrder,
   editStatus,
   getUserIdWithOrderId,
@@ -1267,6 +1354,14 @@ var getMeals2 = async (req, res, next) => {
       }
     });
     const data = await queryBuilder.execute();
+    return sendResponse(res, 200, true, "Meals fetched successfully", data);
+  } catch (error) {
+    next(error);
+  }
+};
+var getMealsByProviderId2 = async (req, res, next) => {
+  try {
+    const data = await MealsService.getMealsByProviderId(req.params.providerId);
     return sendResponse(res, 200, true, "Meals fetched successfully", data);
   } catch (error) {
     next(error);
@@ -1330,6 +1425,7 @@ var createMeal2 = async (req, res, next) => {
     const data = await MealsService.createMeal(req.body, providerId.id);
     return sendResponse(res, 201, true, "Meals created successfully", data);
   } catch (error) {
+    console.log(error);
     next(error);
   }
 };
@@ -1385,6 +1481,7 @@ var deleteMeal2 = async (req, res, next) => {
 };
 var MealsController = {
   getMeals: getMeals2,
+  getMealsByProviderId: getMealsByProviderId2,
   createMeal: createMeal2,
   getMealsById: getMealsById2,
   editMeal: editMeal2,
@@ -1397,6 +1494,7 @@ var MealsController = {
 var router3 = Router3();
 router3.get("/", MealsController.getMeals);
 router3.post("/", authorization_default("PROVIDER" /* PROVIDER */), MealsController.createMeal);
+router3.get("/provider/:providerId", MealsController.getMealsByProviderId);
 router3.get("/:id", MealsController.getMealsById);
 router3.patch(
   "/:id",
@@ -1428,6 +1526,14 @@ var getOrder = async (req, res, next) => {
     } else if (req.user?.role === "USER" /* USER */) {
       const data = await OrderService.getOrderWithUserId(
         req.user?.id
+      );
+      return sendResponse(res, 200, true, "Order fetched successfully", data);
+    } else if (req.user?.role === "PROVIDER" /* PROVIDER */) {
+      const provider = await ProviderService.getProviderIdWithUserId(
+        req.user?.id
+      );
+      const data = await OrderService.getOrdersByProviderId(
+        provider.id
       );
       return sendResponse(res, 200, true, "Order fetched successfully", data);
     } else {
@@ -1509,7 +1615,7 @@ var OrderController = {
 var router4 = Router4();
 router4.get(
   "/",
-  authorization_default("ADMIN" /* ADMIN */, "USER" /* USER */),
+  authorization_default("ADMIN" /* ADMIN */, "USER" /* USER */, "PROVIDER" /* PROVIDER */),
   OrderController.getOrder
 );
 router4.post("/", authorization_default("USER" /* USER */), OrderController.createOrder);
@@ -1951,20 +2057,195 @@ router7.post("/register", AuthController.register);
 router7.post("/login", AuthController.login);
 var AuthRoutes = router7;
 
-// src/routes/index.ts
+// src/modules/payments/payments.route.ts
+import { Router as Router8 } from "express";
+
+// src/modules/payments/payments.service.ts
+import Stripe from "stripe";
+var stripe = new Stripe(env.stripeSecretKey || "", {
+  apiVersion: "2023-10-16"
+});
+var PaymentsService = {
+  createCheckoutSession: async (orderData, userId) => {
+    const mealIds = orderData.orderItems.map((item) => item.mealId);
+    const dbMeals = await prisma.meal.findMany({
+      where: { id: { in: mealIds } },
+      include: { provider: true }
+    });
+    if (dbMeals.length === 0) {
+      throw new Error("No valid meals found");
+    }
+    const providerId = dbMeals[0].providerId;
+    const secureOrderItems = orderData.orderItems.map((item) => {
+      const dbMeal = dbMeals.find((m) => m.id === item.mealId);
+      if (!dbMeal) throw new Error(`Meal ${item.mealId} not found`);
+      return {
+        mealId: item.mealId,
+        quantity: item.quantity,
+        price: dbMeal.price,
+        name: dbMeal.name,
+        image: dbMeal.image
+      };
+    });
+    const totalPrice = secureOrderItems.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
+    const order = await prisma.order.create({
+      data: {
+        delivaryAddress: orderData.delivaryAddress,
+        longitude: orderData.longitude ?? null,
+        latitude: orderData.latitude ?? null,
+        totalPrice: totalPrice + 5,
+        // Add flat $5.00 delivery fee
+        customerId: userId,
+        providerId,
+        paymentStatus: "PENDING",
+        status: "PLACED",
+        orderItems: {
+          create: secureOrderItems.map((item) => ({
+            price: item.price,
+            quantity: item.quantity,
+            mealId: item.mealId
+          }))
+        }
+      }
+    });
+    const lineItems = secureOrderItems.map((item) => ({
+      price_data: {
+        currency: "usd",
+        product_data: {
+          name: item.name,
+          images: item.image ? [item.image] : []
+        },
+        unit_amount: Math.round(item.price * 100)
+      },
+      quantity: item.quantity
+    }));
+    lineItems.push({
+      price_data: {
+        currency: "usd",
+        product_data: {
+          name: "Delivery Fee"
+        },
+        unit_amount: 500
+      },
+      quantity: 1
+    });
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      line_items: lineItems,
+      mode: "payment",
+      success_url: `${env.appUrl}/cart/success?orderId=${order.id}`,
+      cancel_url: `${env.appUrl}/cart/cancel`,
+      metadata: {
+        orderId: order.id,
+        userId
+      }
+    });
+    return session.url;
+  },
+  handleWebhook: async (rawBody, signature) => {
+    let event;
+    try {
+      event = stripe.webhooks.constructEvent(
+        rawBody,
+        signature,
+        env.stripeWebhookSecret || ""
+      );
+    } catch (err) {
+      console.error(`Webhook signature verification failed:`, err.message);
+      throw new Error(`Webhook Error: ${err.message}`);
+    }
+    if (event.type === "checkout.session.completed") {
+      const session = event.data.object;
+      const orderId = session.metadata?.orderId;
+      const transactionId = session.payment_intent;
+      if (orderId) {
+        await prisma.order.update({
+          where: { id: orderId },
+          data: {
+            paymentStatus: "PAID",
+            transactionId
+          }
+        });
+        console.log(`Order ${orderId} successfully paid.`);
+      }
+    }
+  }
+};
+
+// src/modules/payments/payments.controller.ts
+var createCheckoutSession = async (req, res, next) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      throw new Error("Unauthorized user session");
+    }
+    const sessionUrl = await PaymentsService.createCheckoutSession(
+      req.body,
+      userId
+    );
+    return sendResponse(res, 201, true, "Checkout session created successfully", {
+      url: sessionUrl
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+var handleWebhook = async (req, res, next) => {
+  try {
+    const signature = req.headers["stripe-signature"];
+    const rawBody = req.rawBody;
+    if (!signature || !rawBody) {
+      return res.status(400).send("Missing stripe signature or raw body");
+    }
+    await PaymentsService.handleWebhook(rawBody, signature);
+    return res.status(200).json({ received: true });
+  } catch (error) {
+    next(error);
+  }
+};
+var PaymentsController = {
+  createCheckoutSession,
+  handleWebhook
+};
+
+// src/modules/payments/payments.route.ts
 var router8 = Router8();
-router8.use("/providers", ProviderRouter);
-router8.use("/user", UserRouter);
-router8.use("/meals", MealsRoute);
-router8.use("/orders", OrdersRoute);
-router8.use("/get-analytics", AnalyticsRoute);
-router8.use("/categories", CategoryRoutes);
-router8.use("/auth", AuthRoutes);
-var routes = router8;
+router8.post(
+  "/create-checkout-session",
+  authorization_default("USER" /* USER */),
+  PaymentsController.createCheckoutSession
+);
+router8.post("/webhook", PaymentsController.handleWebhook);
+var PaymentsRoute = router8;
+
+// src/routes/index.ts
+var router9 = Router9();
+router9.use("/providers", ProviderRouter);
+router9.use("/user", UserRouter);
+router9.use("/meals", MealsRoute);
+router9.use("/orders", OrdersRoute);
+router9.use("/analytics", AnalyticsRoute);
+router9.use("/categories", CategoryRoutes);
+router9.use("/payments", PaymentsRoute);
+router9.use("/auth", AuthRoutes);
+var routes = router9;
 
 // src/app.ts
 var app = express();
-app.use(express.json());
+app.use(
+  express.json({
+    verify: (req, res, buf) => {
+      req.rawBody = buf;
+    }
+  })
+);
+app.use(cors({
+  origin: env.appUrl,
+  credentials: true
+}));
 app.use(morgan("combined"));
 app.all("/api/auth/*splat", toNodeHandler(auth));
 app.use("/api/v1", routes);
