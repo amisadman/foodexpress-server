@@ -1,5 +1,6 @@
 import { OrderStatus } from "@prisma/client";
 import { prisma } from "../../lib/prisma";
+import { ProviderService } from "../provider/provider.service";
 
 const hasOrdered = async (userId: string, mealId: string) => {
   return await prisma.orderItem.findFirst({
@@ -178,7 +179,7 @@ const createOrderReview = async (
     throw new Error("Order has already been reviewed");
   }
 
-  return await prisma.$transaction(
+  const result = await prisma.$transaction(
     order.orderItems.map((item) =>
       prisma.review.create({
         data: {
@@ -192,6 +193,10 @@ const createOrderReview = async (
       })
     )
   );
+
+  await ProviderService.updateProviderRating(order.providerId);
+
+  return result;
 };
 
 export const OrderService = {

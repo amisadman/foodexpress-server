@@ -109,6 +109,26 @@ const getProviderIdWithMealId = async (id: string) => {
     },
   });
 };
+const updateProviderRating = async (providerId: string) => {
+  const aggregateResult = await prisma.review.aggregate({
+    _avg: {
+      rating: true,
+    },
+    where: {
+      providerId,
+    },
+  });
+
+  const averageRating = aggregateResult._avg.rating ?? 5.0;
+
+  await prisma.providerProfile.update({
+    where: { id: providerId },
+    data: { rating: averageRating },
+  });
+
+  return averageRating;
+};
+
 export const ProviderService = {
   getProviders,
   getProviderWithId,
@@ -118,5 +138,6 @@ export const ProviderService = {
   getProviderIdWithUserId,
   deleteProvider,
   getProviderIdWithOrderId,
-  getProviderIdWithMealId
+  getProviderIdWithMealId,
+  updateProviderRating,
 };

@@ -1,5 +1,6 @@
 import { Meal, Review } from "@prisma/client";
 import { prisma } from "../../lib/prisma";
+import { ProviderService } from "../provider/provider.service";
 
 const getProviderIdWithMealId = async (id: string) => {
   return await prisma.meal.findUniqueOrThrow({
@@ -132,7 +133,7 @@ const createReview = async (
   providerId: string,
   userId: string,
 ) => {
-  return await prisma.review.create({
+  const result = await prisma.review.create({
     data: {
       ...data,
       mealId,
@@ -140,6 +141,10 @@ const createReview = async (
       userId,
     },
   });
+
+  await ProviderService.updateProviderRating(providerId);
+
+  return result;
 };
 const createMeal = async (
   data: Omit<Meal, "id" | "createdAt" | "updatedAt" | "providerId">,

@@ -351,6 +351,22 @@ var getProviderIdWithMealId = async (id) => {
     }
   });
 };
+var updateProviderRating = async (providerId) => {
+  const aggregateResult = await prisma.review.aggregate({
+    _avg: {
+      rating: true
+    },
+    where: {
+      providerId
+    }
+  });
+  const averageRating = aggregateResult._avg.rating ?? 5;
+  await prisma.providerProfile.update({
+    where: { id: providerId },
+    data: { rating: averageRating }
+  });
+  return averageRating;
+};
 var ProviderService = {
   getProviders,
   getProviderWithId,
@@ -360,7 +376,8 @@ var ProviderService = {
   getProviderIdWithUserId,
   deleteProvider,
   getProviderIdWithOrderId,
-  getProviderIdWithMealId
+  getProviderIdWithMealId,
+  updateProviderRating
 };
 
 // src/utils/response.ts
@@ -1205,7 +1222,7 @@ var getReviews = async (id) => {
   });
 };
 var createReview = async (data, mealId, providerId, userId) => {
-  return await prisma.review.create({
+  const result = await prisma.review.create({
     data: {
       ...data,
       mealId,
@@ -1213,6 +1230,8 @@ var createReview = async (data, mealId, providerId, userId) => {
       userId
     }
   });
+  await ProviderService.updateProviderRating(providerId);
+  return result;
 };
 var createMeal = async (data, providerId) => {
   return await prisma.meal.create({
@@ -1396,7 +1415,7 @@ var createOrderReview = async (orderId, userId, data) => {
   if (order.reviews.length > 0) {
     throw new Error("Order has already been reviewed");
   }
-  return await prisma.$transaction(
+  const result = await prisma.$transaction(
     order.orderItems.map(
       (item) => prisma.review.create({
         data: {
@@ -1410,6 +1429,8 @@ var createOrderReview = async (orderId, userId, data) => {
       })
     )
   );
+  await ProviderService.updateProviderRating(order.providerId);
+  return result;
 };
 var OrderService = {
   hasOrdered,
