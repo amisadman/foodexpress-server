@@ -124,6 +124,7 @@ const createMeal = async (req: Request, res: Response, next: NextFunction) => {
     const data = await MealsService.createMeal(req.body, providerId.id);
     return sendResponse(res, 201, true, "Meals created successfully", data);
   } catch (error) {
+    console.log(error);
     next(error);
   }
 };
