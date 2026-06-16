@@ -8,7 +8,7 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql", // or "mysql", "postgresql", ...etc
   }),
-  // trustedOrigins: [env.appUrl as string],
+  trustedOrigins: [env.appUrl as string],
   user: {
     additionalFields: {
       role: {
@@ -45,8 +45,8 @@ export const auth = betterAuth({
   },
   session: {
     //1day
-    expiresIn: 60 * 60 * 60 * 24 ,
-    updateAge: 60 * 60 * 60 * 24  ,
+    expiresIn: 60 * 60 * 60 * 24,
+    updateAge: 60 * 60 * 60 * 24,
   },
   advanced: {
     // disableCSRFCheck: true,

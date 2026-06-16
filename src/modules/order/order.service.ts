@@ -39,6 +39,27 @@ const getOrderWithUserId = async (userID: string) => {
     where: {
       customerId: userID,
     },
+    include: {
+      provider: {
+        select: {
+          name: true,
+          location: true,
+        },
+      },
+      orderItems: {
+        include: {
+          meal: {
+            select: {
+              name: true,
+              image: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
   });
 };
 
@@ -102,10 +123,40 @@ const deleteOrder = async (id: string) => {
   });
 };
 
+const getOrdersByProviderId = async (providerId: string) => {
+  return await prisma.order.findMany({
+    where: {
+      providerId,
+    },
+    include: {
+      orderItems: {
+        include: {
+          meal: {
+            select: {
+              name: true,
+              image: true,
+            },
+          },
+        },
+      },
+      customer: {
+        select: {
+          name: true,
+          email: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+};
+
 export const OrderService = {
   hasOrdered,
   getOrders,
   getOrderWithUserId,
+  getOrdersByProviderId,
   createOrder,
   editStatus,
   getUserIdWithOrderId,
