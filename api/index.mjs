@@ -433,9 +433,6 @@ var QueryBuilder = class {
       where: {}
     };
   }
-  model;
-  queryParams;
-  config;
   query;
   countQuery;
   page = 1;
@@ -2214,9 +2211,19 @@ import { Router as Router8 } from "express";
 
 // src/modules/payments/payments.service.ts
 import Stripe from "stripe";
-var stripe = new Stripe(env.stripeSecretKey || "", {
-  apiVersion: "2023-10-16"
-});
+var stripeInstance = null;
+var getStripe = () => {
+  if (!stripeInstance) {
+    const key = env.stripeSecretKey;
+    if (!key) {
+      throw new Error("STRIPE_SECRET_KEY is not configured in environment variables.");
+    }
+    stripeInstance = new Stripe(key, {
+      apiVersion: "2023-10-16"
+    });
+  }
+  return stripeInstance;
+};
 var PaymentsService = {
   createCheckoutSession: async (orderData, userId) => {
     const mealIds = orderData.orderItems.map((item) => item.mealId);
@@ -2289,7 +2296,7 @@ var PaymentsService = {
       },
       quantity: 1
     });
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripe().checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: lineItems,
       mode: "payment",
@@ -2305,7 +2312,7 @@ var PaymentsService = {
   handleWebhook: async (rawBody, signature) => {
     let event;
     try {
-      event = stripe.webhooks.constructEvent(
+      event = getStripe().webhooks.constructEvent(
         rawBody,
         signature,
         env.stripeWebhookSecret || ""

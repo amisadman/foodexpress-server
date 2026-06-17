@@ -2,9 +2,19 @@ import Stripe from "stripe";
 import { env } from "../../config/env";
 import { prisma } from "../../lib/prisma";
 
-const stripe = new Stripe(env.stripeSecretKey || "", {
-  apiVersion: "2023-10-16" as any,
-});
+let stripeInstance: Stripe | null = null;
+const getStripe = (): Stripe => {
+  if (!stripeInstance) {
+    const key = env.stripeSecretKey;
+    if (!key) {
+      throw new Error("STRIPE_SECRET_KEY is not configured in environment variables.");
+    }
+    stripeInstance = new Stripe(key, {
+      apiVersion: "2023-10-16" as any,
+    });
+  }
+  return stripeInstance;
+};
 
 export const PaymentsService = {
   createCheckoutSession: async (orderData: any, userId: string) => {
@@ -92,7 +102,7 @@ export const PaymentsService = {
     });
 
     // 4. Create Stripe Checkout Session
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripe().checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: lineItems,
       mode: "payment",
@@ -111,7 +121,7 @@ export const PaymentsService = {
     let event: any;
 
     try {
-      event = stripe.webhooks.constructEvent(
+      event = getStripe().webhooks.constructEvent(
         rawBody,
         signature,
         env.stripeWebhookSecret || ""

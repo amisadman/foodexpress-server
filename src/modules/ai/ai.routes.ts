@@ -2,7 +2,7 @@ import { Router } from "express";
 import { AiController } from "./ai.controller";
 import authorization, { UserRole } from "../../middleware/authorization";
 
-const router = Router();
+const router: Router = Router();
 
 router.post(
   "/rephrase",
@@ -10,4 +10,4 @@ router.post(
   AiController.rephraseText
 );
 
-export const AiRouter = router;
+export const AiRouter: Router = router;
