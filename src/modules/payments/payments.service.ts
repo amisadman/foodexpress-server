@@ -108,7 +108,7 @@ export const PaymentsService = {
   },
 
   handleWebhook: async (rawBody: Buffer, signature: string) => {
-    let event: Stripe.Event;
+    let event: any;
 
     try {
       event = stripe.webhooks.constructEvent(
@@ -122,7 +122,7 @@ export const PaymentsService = {
     }
 
     if (event.type === "checkout.session.completed") {
-      const session = event.data.object as Stripe.Checkout.Session;
+      const session = event.data.object as any;
       const orderId = session.metadata?.orderId;
       const transactionId = session.payment_intent as string;
 
