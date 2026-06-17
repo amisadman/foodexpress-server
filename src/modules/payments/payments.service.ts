@@ -19,7 +19,7 @@ export const PaymentsService = {
       throw new Error("No valid meals found");
     }
 
-    const providerId = dbMeals[0].providerId;
+    const providerId = dbMeals[0]!.providerId;
 
     const secureOrderItems = orderData.orderItems.map((item: any) => {
       const dbMeal = dbMeals.find((m) => m.id === item.mealId);

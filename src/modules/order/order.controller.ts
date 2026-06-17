@@ -106,7 +106,7 @@ const createOrderReview = async (req: Request, res: Response, next: NextFunction
       return sendResponse(res, 400, false, "Rating is required and must be a number between 1 and 5", null);
     }
 
-    const data = await OrderService.createOrderReview(orderId, userId as string, { rating, comment });
+    const data = await OrderService.createOrderReview(orderId as string, userId as string, { rating, comment });
     return sendResponse(res, 201, true, "Reviews submitted successfully", data);
   } catch (error: any) {
     if (error.message.includes("Unauthorized") || error.message.includes("own this order")) {
