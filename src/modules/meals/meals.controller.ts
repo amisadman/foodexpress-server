@@ -7,7 +7,7 @@ import { UserRole } from "../../middleware/authorization";
 import { OrderService } from "../order/order.service";
 import { QueryBuilder } from "../../utils/QueryBuilder";
 import { IQueryParams } from "../../interface/querybuilder.interface";
-import { Meal } from "@prisma/client";
+import { Meal } from "../../generated/client";
 const getMeals = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const queryBuilder = new QueryBuilder<Meal>(

@@ -1,4 +1,4 @@
-import { Role } from "@prisma/client";
+import { Role } from "../generated/client";
 import { env } from "../config/env";
 import { auth } from "../lib/auth";
 import { prisma } from "../lib/prisma";

@@ -1,4 +1,4 @@
-import { Meal, Review } from "@prisma/client";
+import { Meal, Review } from "../../generated/client";
 import { prisma } from "../../lib/prisma";
 import { ProviderService } from "../provider/provider.service";
 

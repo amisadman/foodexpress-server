@@ -1,4 +1,4 @@
-import { ProviderProfile, Role } from "@prisma/client";
+import { ProviderProfile, Role } from "../../generated/client";
 import { prisma } from "../../lib/prisma";
 
 const getProviders = async () => {

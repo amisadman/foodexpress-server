@@ -1,4 +1,4 @@
-import { OrderStatus } from "@prisma/client";
+import { OrderStatus } from "../../generated/client";
 import { prisma } from "../../lib/prisma";
 import { ProviderService } from "../provider/provider.service";
 

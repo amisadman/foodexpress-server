@@ -3,12 +3,14 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "./prisma";
 import { env } from "../config/env";
 import { sendEmail } from "../services/mail/mail.service";
+import { oAuthProxy } from "better-auth/plugins";
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql", // or "mysql", "postgresql", ...etc
   }),
-  trustedOrigins: [env.appUrl as string],
+  baseURL: process.env.FRONTEND_URL || env.appUrl,
+  trustedOrigins: [process.env.FRONTEND_URL || (env.appUrl as string)],
   user: {
     additionalFields: {
       role: {
@@ -49,7 +51,27 @@ export const auth = betterAuth({
     updateAge: 60 * 60 * 60 * 24,
   },
   advanced: {
-    // disableCSRFCheck: true,
     useSecureCookies: env.appUrl ? env.appUrl.startsWith("https") : false,
+    cookies: {
+      session_token: {
+        name: "session_token",
+        attributes: {
+          httpOnly: true,
+          secure: true,
+          sameSite: "none",
+          partitioned: true,
+        },
+      },
+      state: {
+        name: "better-auth.state",
+        attributes: {
+          httpOnly: true,
+          secure: true,
+          sameSite: "none",
+          partitioned: true,
+        },
+      },
+    },
   },
+  plugins: [oAuthProxy()],
 });

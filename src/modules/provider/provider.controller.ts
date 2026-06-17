@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { ProviderService } from "./provider.service";
 import { sendResponse } from "../../utils/response";
-import { ProviderProfile } from "@prisma/client";
+import { ProviderProfile } from "../../generated/client";
 import { UserRole } from "../../middleware/authorization";
 import { QueryBuilder } from "../../utils/QueryBuilder";
 import { IQueryParams } from "../../interface/querybuilder.interface";

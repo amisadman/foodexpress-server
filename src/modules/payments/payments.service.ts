@@ -2,8 +2,8 @@ import Stripe from "stripe";
 import { env } from "../../config/env";
 import { prisma } from "../../lib/prisma";
 
-let stripeInstance: Stripe | null = null;
-const getStripe = (): Stripe => {
+let stripeInstance: InstanceType<typeof Stripe> | null = null;
+const getStripe = (): InstanceType<typeof Stripe> => {
   if (!stripeInstance) {
     const key = env.stripeSecretKey;
     if (!key) {

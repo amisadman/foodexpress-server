@@ -2,7 +2,7 @@
   // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
     // File Layout
-    // "rootDir": "./src",
+    "rootDir": "./src",
     "outDir": "./dist",
     "baseUrl": ".",
 
@@ -10,17 +10,18 @@
     // See also https://aka.ms/tsconfig/module
     "module": "esnext",
     "target": "es2023",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
     "ignoreDeprecations": "5.0",
     // For nodejs:
     "lib": ["esnext"],
+    "types": ["node"],
     // and npm install -D @types/node
 
     // Other Outputs
     "sourceMap": true,
-    "declaration": true,
-    "declarationMap": true,
+    "declaration": false,
+    "declarationMap": false,
 
     // Stricter Typechecking Options
     "noUncheckedIndexedAccess": true,
@@ -44,5 +45,5 @@
     "skipLibCheck": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "src/generated"]
+  "exclude": []
 }

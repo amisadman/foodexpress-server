@@ -2,15 +2,17 @@ import express, { Application, Request, Response } from "express";
 import os from "os";
 import cors from "cors";
 import morgan from "morgan";
+import cookieParser from "cookie-parser";
 import { accessLogStream } from "./middleware/logger";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "./lib/auth";
 import { notFound } from "./middleware/notFound";
 import errorHandler from "./middleware/globalErrorHandler";
-import { routes } from "./routes";
+import { routes } from "./routes/index";
 import { env } from "./config/env";
 
 const app: Application = express();
+app.use(cookieParser());
 app.use(
   express.json({
     verify: (req: any, res, buf) => {
@@ -19,11 +21,11 @@ app.use(
   })
 );
 app.use( cors({
-    origin: env.appUrl,
+    origin: process.env.FRONTEND_URL || env.appUrl,
     credentials: true,
   }),);
 app.use(morgan("combined"));
-app.all("/api/auth/*splat", toNodeHandler(auth));
+app.use("/api/auth", toNodeHandler(auth));
 
 app.use("/api/v1", routes);
 
