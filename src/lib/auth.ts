@@ -50,24 +50,6 @@ export const auth = betterAuth({
   },
   advanced: {
     // disableCSRFCheck: true,
-    useSecureCookies: false,
-    cookies: {
-      state: {
-        attributes: {
-          sameSite: "none",
-          secure: true,
-          httpOnly: true,
-          path: "/",
-        },
-      },
-      sessionToken: {
-        attributes: {
-          sameSite: "none",
-          secure: true,
-          httpOnly: true,
-          path: "/",
-        },
-      },
-    },
+    useSecureCookies: env.appUrl ? env.appUrl.startsWith("https") : false,
   },
 });
