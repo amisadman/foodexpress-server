@@ -9,10 +9,11 @@
 FoodExpress is a premium food ordering platform that connects hungry customers with their favorite local providers. Built with a focus on speed, reliability, and a seamless user experience, FoodExpress is your go-to solution for satisfying every craving.
 
 ---
-## Client Repository
+## Live Deployments & Repository
 
-The frontend client for this project is available at:
-[https://github.com/amisadman/foodexpress-client](https://github.com/amisadman/foodexpress-client)
+- **Frontend Client (Live)**: [https://foodexpress-client.vercel.app](https://foodexpress-client.vercel.app)
+- **Backend Server (Live)**: [https://foodexpress-server.vercel.app](https://foodexpress-server.vercel.app)
+- **Client Repository**: [https://github.com/amisadman/foodexpress-frontend](https://github.com/amisadman/foodexpress-frontend)
 
 ---
 
