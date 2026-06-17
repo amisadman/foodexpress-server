@@ -7,8 +7,9 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "prisma generate && tsup",
-    "postinstall": "prisma generate",
+    "postinstall": "prisma generate && tsup",
     "seed:data": "tsx ./src/scripts/seedData.ts",
+    "start": "node api/server.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
